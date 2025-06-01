@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core.config import settings
+from app.core.auth import get_current_user
 from app.db.base import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, Token, User as UserSchema
+from app.schemas.user import UserCreate, Token, User as UserSchema, UserUpdate
 
 router = APIRouter()
 
@@ -55,6 +56,47 @@ async def login(
             "role": user.role
         }
     }
+
+
+@router.get("/me", response_model=UserSchema)
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Get current user profile
+    """
+    return current_user
+
+
+@router.put("/profile", response_model=UserSchema)
+async def update_user_profile(
+    *,
+    db: Session = Depends(get_db),
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Update current user profile
+    """
+    # Update user fields
+    if user_update.full_name is not None:
+        current_user.full_name = user_update.full_name
+    if user_update.email is not None:
+        # Check if email is already taken by another user
+        existing_user = db.query(User).filter(
+            User.email == user_update.email,
+            User.id != current_user.id
+        ).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=400,
+                detail="Email already registered"
+            )
+        current_user.email = user_update.email
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 
 @router.post("/register", response_model=UserSchema)
