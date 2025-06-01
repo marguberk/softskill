@@ -2,15 +2,15 @@ import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
-import { Badge } from "../../components/ui/badge"
 import {
   User,
   Mail,
-  Calendar,
-  Shield,
+  Lock,
   Edit3,
   Save,
-  X
+  X,
+  Eye,
+  EyeOff
 } from "lucide-react"
 
 interface UserProfile {
@@ -19,16 +19,26 @@ interface UserProfile {
   full_name: string
   role: string
   is_active: boolean
-  created_at: string
 }
 
 export default function StudentProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  })
   const [editForm, setEditForm] = useState({
     full_name: "",
     email: ""
+  })
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: ""
   })
 
   const API_BASE = 'http://127.0.0.1:8000/api/v1'
@@ -95,25 +105,64 @@ export default function StudentProfile() {
     }
   }
 
+  const handlePasswordChange = async () => {
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      alert('Новый пароль и подтверждение не совпадают')
+      return
+    }
+
+    if (passwordForm.new_password.length < 6) {
+      alert('Пароль должен содержать минимум 6 символов')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/change-password`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          current_password: passwordForm.current_password,
+          new_password: passwordForm.new_password
+        })
+      })
+      
+      if (response.ok) {
+        alert('Пароль успешно изменен')
+        setPasswordForm({
+          current_password: "",
+          new_password: "",
+          confirm_password: ""
+        })
+        setIsChangingPassword(false)
+      } else {
+        const error = await response.json()
+        alert(error.detail || 'Ошибка при смене пароля')
+      }
+    } catch (error) {
+      console.error('Ошибка при смене пароля:', error)
+      alert('Ошибка при смене пароля')
+    }
+  }
+
+  const handleCancelPasswordChange = () => {
+    setPasswordForm({
+      current_password: "",
+      new_password: "",
+      confirm_password: ""
+    })
+    setIsChangingPassword(false)
+  }
+
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }))
+  }
+
   useEffect(() => {
     loadProfile()
   }, [])
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'admin': return 'Администратор'
-      case 'student': return 'Студент'
-      default: return role
-    }
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800'
-      case 'student': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   if (isLoading) {
     return (
@@ -218,53 +267,50 @@ export default function StudentProfile() {
                 <p className="text-lg">{profile.email}</p>
               )}
             </div>
-
-            {/* Роль */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Роль
-              </label>
-              <Badge className={getRoleColor(profile.role)}>
-                {getRoleLabel(profile.role)}
-              </Badge>
-            </div>
-
-            {/* Дата регистрации */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Дата регистрации
-              </label>
-              <p className="text-lg">
-                {new Date(profile.created_at).toLocaleDateString('ru-RU', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}
-              </p>
-            </div>
-
-            {/* Статус аккаунта */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Статус аккаунта
-              </label>
-              <Badge className={profile.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                {profile.is_active ? 'Активный' : 'Неактивный'}
-              </Badge>
-            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Дополнительная информация */}
+      {/* Смена пароля */}
       <Card>
         <CardHeader>
-          <CardTitle>Безопасность</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Безопасность
+            </CardTitle>
+            {!isChangingPassword ? (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsChangingPassword(true)}
+              >
+                <Lock className="h-4 w-4 mr-2" />
+                Изменить пароль
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleCancelPasswordChange}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Отмена
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={handlePasswordChange}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Сохранить
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          {!isChangingPassword ? (
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <h4 className="font-medium">Изменить пароль</h4>
@@ -272,11 +318,97 @@ export default function StudentProfile() {
                   Обновите пароль для обеспечения безопасности аккаунта
                 </p>
               </div>
-              <Button variant="outline" disabled>
-                Скоро...
-              </Button>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Текущий пароль */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Текущий пароль
+                </label>
+                <div className="relative">
+                  <Input
+                    type={showPasswords.current ? "text" : "password"}
+                    value={passwordForm.current_password}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
+                    placeholder="Введите текущий пароль"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('current')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPasswords.current ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Новый пароль */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Новый пароль
+                </label>
+                <div className="relative">
+                  <Input
+                    type={showPasswords.new ? "text" : "password"}
+                    value={passwordForm.new_password}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
+                    placeholder="Введите новый пароль"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('new')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPasswords.new ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Подтверждение пароля */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Подтвердите новый пароль
+                </label>
+                <div className="relative">
+                  <Input
+                    type={showPasswords.confirm ? "text" : "password"}
+                    value={passwordForm.confirm_password}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
+                    placeholder="Повторите новый пароль"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('confirm')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPasswords.confirm ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Требования к паролю */}
+              <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
+                <p className="font-medium mb-1">Требования к паролю:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Минимум 6 символов</li>
+                  <li>Рекомендуется использовать буквы, цифры и специальные символы</li>
+                </ul>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
