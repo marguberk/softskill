@@ -196,7 +196,7 @@ export default function StudentDashboard() {
                 <Award className="h-8 w-8 text-primary" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                    Общий результат
+                    Общий прогресс
               </p>
               <h3 className="text-2xl font-bold tracking-tight mt-1">
                     {assessmentResults.total_score}%
