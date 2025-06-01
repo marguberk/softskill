@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.base import Base, engine, get_db
-from app.api import auth, courses, skills, tasks
+from app.api import auth, skills, tasks  # courses временно отключен
+from app.api import courses_v2  # новый API курсов
 from app.api.v1 import admin
 from app.api.v1 import materials
 from app.data.seed_skills import seed_skills_data
@@ -62,7 +63,7 @@ app.add_middleware(
 
 # Подключаем роутеры
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
-app.include_router(courses.router, prefix=f"{settings.API_V1_STR}/courses", tags=["courses"])
+app.include_router(courses_v2.router, prefix=f"{settings.API_V1_STR}/courses", tags=["courses"])
 app.include_router(skills.router, prefix=f"{settings.API_V1_STR}/skills", tags=["skills"])
 app.include_router(tasks.router, prefix=f"{settings.API_V1_STR}/tasks", tags=["tasks"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"])

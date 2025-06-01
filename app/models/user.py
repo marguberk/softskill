@@ -16,6 +16,15 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Связи
-    courses = relationship("Course", back_populates="author")
+    courses = relationship("Course", back_populates="author")  # Курсы, созданные пользователем
+    course_enrollments = relationship("CourseEnrollment", back_populates="user")  # Записи на курсы
+    course_completions = relationship("CourseCompletion", back_populates="user")  # Завершенные курсы
+    exam_attempts = relationship("ExamAttempt", back_populates="user")  # Попытки экзаменов
     task_completions = relationship("TaskCompletion", back_populates="user")
-    level = relationship("UserLevel", back_populates="user", uselist=False)
+    user_progress = relationship("UserProgress", back_populates="user")  # Прогресс по курсам
+    achievements = relationship("UserAchievement", back_populates="user")  # Достижения
+    
+    # Временная заглушка для совместимости
+    @property
+    def level(self):
+        return None
