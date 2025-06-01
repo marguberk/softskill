@@ -2,20 +2,17 @@ import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Button } from "../../components/ui/button"
-import { Progress } from "../../components/ui/progress"
 import {
   Trophy,
   CheckCircle,
   Clock,
   Star,
-  TrendingUp,
   Target,
   Zap,
   Calendar,
   Gift,
   Loader2
 } from "lucide-react"
-import { useAuthStore } from "../../stores/auth"
 
 interface DailyTask {
   id: number
@@ -37,25 +34,8 @@ interface UserDailyTaskAssignment {
   task: DailyTask
 }
 
-interface UserLevel {
-  user_id: number
-  total_points: number
-  current_level: number
-  points_to_next_level: number
-}
-
-interface TaskCompletion {
-  id: number
-  task_id: number
-  completed_at: string
-  points_earned: number
-  task: DailyTask
-}
-
 interface DailyTasksPageData {
   today_tasks: UserDailyTaskAssignment[]
-  user_level: UserLevel
-  recent_completions: TaskCompletion[]
 }
 
 export default function DailyTasksPage() {
@@ -63,7 +43,6 @@ export default function DailyTasksPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [completingTaskId, setCompletingTaskId] = useState<number | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set())
 
   const API_BASE = 'http://127.0.0.1:8000/api/v1'
 
@@ -84,7 +63,9 @@ export default function DailyTasksPage() {
       
       if (response.ok) {
         const data = await response.json()
-        setPageData(data)
+        setPageData({
+          today_tasks: data.today_tasks
+        })
       }
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error)
@@ -176,49 +157,6 @@ export default function DailyTasksPage() {
     )
   }
 
-  // Исправленный расчет прогресса и очков для уровня
-  const getLevelData = () => {
-    const currentLevel = pageData.user_level.current_level
-    const totalPoints = pageData.user_level.total_points
-    
-    // Вычисляем очки для текущего уровня
-    let pointsForCurrentLevel = 0
-    let pointsForNextLevel = 0
-    
-    if (currentLevel === 1) {
-      pointsForCurrentLevel = 0
-      pointsForNextLevel = 100
-    } else if (currentLevel === 2) {
-      pointsForCurrentLevel = 100
-      pointsForNextLevel = 250
-    } else if (currentLevel === 3) {
-      pointsForCurrentLevel = 250
-      pointsForNextLevel = 450
-    } else if (currentLevel === 4) {
-      pointsForCurrentLevel = 450
-      pointsForNextLevel = 700
-    } else {
-      pointsForCurrentLevel = 700 + (currentLevel - 5) * 300
-      pointsForNextLevel = 700 + (currentLevel - 4) * 300
-    }
-    
-    const pointsInCurrentLevel = totalPoints - pointsForCurrentLevel
-    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel
-    const progressPercent = Math.max(0, Math.min(100, (pointsInCurrentLevel / pointsNeededForLevel) * 100))
-    
-    // Правильный расчет очков до следующего уровня
-    const pointsToNextLevel = pointsNeededForLevel - pointsInCurrentLevel
-    
-    return {
-      currentPoints: pointsInCurrentLevel,
-      totalPointsForLevel: pointsNeededForLevel,
-      progressPercent,
-      pointsToNext: pointsToNextLevel
-    }
-  }
-
-  const levelData = getLevelData()
-
   return (
     <div className="space-y-8">
       {/* Заголовок */}
@@ -241,28 +179,6 @@ export default function DailyTasksPage() {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Прогресс до следующего уровня */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">
-              Уровень {pageData.user_level.current_level}
-            </h3>
-            <span className="text-lg font-semibold text-primary">
-              XP: {levelData.currentPoints} / {levelData.totalPointsForLevel}
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-2">
-            <Progress value={levelData.progressPercent} className="h-3" />
-            <p className="text-sm text-muted-foreground">
-              Нужно еще {levelData.pointsToNext} очков для повышения уровня
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Задания на сегодня */}
       <Card>
@@ -337,41 +253,6 @@ export default function DailyTasksPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Недавние достижения */}
-      {pageData.recent_completions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              Недавние достижения
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pageData.recent_completions.map((completion) => (
-                <div
-                  key={completion.id}
-                  className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="font-medium">{completion.task.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(completion.completed_at).toLocaleDateString('ru-RU')}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full hover:bg-green-100">
-                    +{completion.points_earned} очков
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 } 
