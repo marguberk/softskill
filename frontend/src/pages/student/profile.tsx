@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
+import { toast } from "sonner"
+import { useAuthStore } from "../../stores/auth"
 import {
   User,
   Mail,
@@ -26,6 +28,8 @@ export default function StudentProfile() {
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isSavingPassword, setIsSavingPassword] = useState(false)
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -41,6 +45,7 @@ export default function StudentProfile() {
     confirm_password: ""
   })
 
+  const { user, setAuth } = useAuthStore()
   const API_BASE = 'http://127.0.0.1:8000/api/v1'
 
   const getAuthHeaders = () => {
@@ -65,9 +70,12 @@ export default function StudentProfile() {
           full_name: data.full_name || "",
           email: data.email || ""
         })
+      } else {
+        toast.error('Не удалось загрузить данные профиля')
       }
     } catch (error) {
       console.error('Ошибка при загрузке профиля:', error)
+      toast.error('Ошибка при загрузке профиля')
     } finally {
       setIsLoading(false)
     }
@@ -89,6 +97,7 @@ export default function StudentProfile() {
 
   const handleSave = async () => {
     try {
+      setIsSavingProfile(true)
       const response = await fetch(`${API_BASE}/auth/profile`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -99,24 +108,66 @@ export default function StudentProfile() {
         const updatedProfile = await response.json()
         setProfile(updatedProfile)
         setIsEditing(false)
+        
+        // Обновляем пользователя в store
+        if (user) {
+          const token = localStorage.getItem('token') || localStorage.getItem('access_token')
+          if (token) {
+            setAuth({
+              ...user,
+              full_name: updatedProfile.full_name,
+              email: updatedProfile.email
+            }, token)
+          }
+        }
+        
+        toast.success('Профиль успешно обновлен')
+      } else {
+        const error = await response.json()
+        toast.error(error.detail || 'Ошибка при сохранении профиля')
       }
     } catch (error) {
       console.error('Ошибка при сохранении профиля:', error)
+      toast.error('Ошибка при сохранении профиля')
+    } finally {
+      setIsSavingProfile(false)
     }
   }
 
   const handlePasswordChange = async () => {
+    // Валидация полей
+    if (!passwordForm.current_password) {
+      toast.error('Введите текущий пароль')
+      return
+    }
+
+    if (!passwordForm.new_password) {
+      toast.error('Введите новый пароль')
+      return
+    }
+
+    if (!passwordForm.confirm_password) {
+      toast.error('Подтвердите новый пароль')
+      return
+    }
+
     if (passwordForm.new_password !== passwordForm.confirm_password) {
-      alert('Новый пароль и подтверждение не совпадают')
+      toast.error('Новый пароль и подтверждение не совпадают')
       return
     }
 
     if (passwordForm.new_password.length < 6) {
-      alert('Пароль должен содержать минимум 6 символов')
+      toast.error('Пароль должен содержать минимум 6 символов')
+      return
+    }
+
+    if (passwordForm.current_password === passwordForm.new_password) {
+      toast.error('Новый пароль должен отличаться от текущего')
       return
     }
 
     try {
+      setIsSavingPassword(true)
       const response = await fetch(`${API_BASE}/auth/change-password`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -127,7 +178,7 @@ export default function StudentProfile() {
       })
       
       if (response.ok) {
-        alert('Пароль успешно изменен')
+        toast.success('Пароль успешно изменен')
         setPasswordForm({
           current_password: "",
           new_password: "",
@@ -136,11 +187,17 @@ export default function StudentProfile() {
         setIsChangingPassword(false)
       } else {
         const error = await response.json()
-        alert(error.detail || 'Ошибка при смене пароля')
+        if (error.detail === 'Неверный текущий пароль' || error.detail === 'Incorrect current password') {
+          toast.error('Неверный текущий пароль')
+        } else {
+          toast.error(error.detail || 'Ошибка при смене пароля')
+        }
       }
     } catch (error) {
       console.error('Ошибка при смене пароля:', error)
-      alert('Ошибка при смене пароля')
+      toast.error('Ошибка соединения с сервером')
+    } finally {
+      setIsSavingPassword(false)
     }
   }
 
@@ -176,6 +233,13 @@ export default function StudentProfile() {
     return (
       <div className="text-center py-12">
         <p>Не удалось загрузить данные профиля</p>
+        <Button 
+          variant="outline" 
+          onClick={loadProfile}
+          className="mt-4"
+        >
+          Попробовать снова
+        </Button>
       </div>
     )
   }
@@ -216,6 +280,7 @@ export default function StudentProfile() {
                   variant="outline" 
                   size="sm"
                   onClick={handleCancel}
+                  disabled={isSavingProfile}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Отмена
@@ -223,9 +288,19 @@ export default function StudentProfile() {
                 <Button 
                   size="sm"
                   onClick={handleSave}
+                  disabled={isSavingProfile}
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  Сохранить
+                  {isSavingProfile ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Сохранение...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Сохранить
+                    </>
+                  )}
                 </Button>
               </div>
             )}
@@ -244,6 +319,7 @@ export default function StudentProfile() {
                   value={editForm.full_name}
                   onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
                   placeholder="Введите ваше полное имя"
+                  disabled={isSavingProfile}
                 />
               ) : (
                 <p className="text-lg">{profile.full_name || "Не указано"}</p>
@@ -262,6 +338,7 @@ export default function StudentProfile() {
                   value={editForm.email}
                   onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="Введите email"
+                  disabled={isSavingProfile}
                 />
               ) : (
                 <p className="text-lg">{profile.email}</p>
@@ -284,6 +361,7 @@ export default function StudentProfile() {
                 variant="outline" 
                 size="sm"
                 onClick={() => setIsChangingPassword(true)}
+                disabled={isEditing}
               >
                 <Lock className="h-4 w-4 mr-2" />
                 Изменить пароль
@@ -294,6 +372,7 @@ export default function StudentProfile() {
                   variant="outline" 
                   size="sm"
                   onClick={handleCancelPasswordChange}
+                  disabled={isSavingPassword}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Отмена
@@ -301,9 +380,19 @@ export default function StudentProfile() {
                 <Button 
                   size="sm"
                   onClick={handlePasswordChange}
+                  disabled={isSavingPassword}
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  Сохранить
+                  {isSavingPassword ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Сохранение...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Сохранить
+                    </>
+                  )}
                 </Button>
               </div>
             )}
@@ -332,11 +421,13 @@ export default function StudentProfile() {
                     value={passwordForm.current_password}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
                     placeholder="Введите текущий пароль"
+                    disabled={isSavingPassword}
                   />
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility('current')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={isSavingPassword}
                   >
                     {showPasswords.current ? (
                       <EyeOff className="h-4 w-4" />
@@ -358,11 +449,13 @@ export default function StudentProfile() {
                     value={passwordForm.new_password}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
                     placeholder="Введите новый пароль"
+                    disabled={isSavingPassword}
                   />
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility('new')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={isSavingPassword}
                   >
                     {showPasswords.new ? (
                       <EyeOff className="h-4 w-4" />
@@ -384,11 +477,13 @@ export default function StudentProfile() {
                     value={passwordForm.confirm_password}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
                     placeholder="Повторите новый пароль"
+                    disabled={isSavingPassword}
                   />
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility('confirm')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={isSavingPassword}
                   >
                     {showPasswords.confirm ? (
                       <EyeOff className="h-4 w-4" />
@@ -404,6 +499,7 @@ export default function StudentProfile() {
                 <p className="font-medium mb-1">Требования к паролю:</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Минимум 6 символов</li>
+                  <li>Должен отличаться от текущего пароля</li>
                   <li>Рекомендуется использовать буквы, цифры и специальные символы</li>
                 </ul>
               </div>

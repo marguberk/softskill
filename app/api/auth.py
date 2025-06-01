@@ -113,14 +113,14 @@ async def change_password(
     if not verify_password(password_data.current_password, current_user.hashed_password):
         raise HTTPException(
             status_code=400,
-            detail="Incorrect current password"
+            detail="Неверный текущий пароль"
         )
     
     # Update password
     current_user.hashed_password = get_password_hash(password_data.new_password)
     db.commit()
     
-    return {"message": "Password changed successfully"}
+    return {"message": "Пароль успешно изменен"}
 
 
 @router.post("/register", response_model=UserSchema)
