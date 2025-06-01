@@ -1,0 +1,377 @@
+import { useEffect, useState } from "react"
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
+import { Alert, AlertDescription } from "../../components/ui/alert"
+import { Button } from "../../components/ui/button"
+import { Progress } from "../../components/ui/progress"
+import {
+  Trophy,
+  CheckCircle,
+  Clock,
+  Star,
+  TrendingUp,
+  Target,
+  Zap,
+  Calendar,
+  Gift,
+  Loader2
+} from "lucide-react"
+import { useAuthStore } from "../../stores/auth"
+
+interface DailyTask {
+  id: number
+  title: string
+  description: string
+  task_type: string
+  difficulty: string
+  points: number
+  is_active: boolean
+  created_at: string
+}
+
+interface UserDailyTaskAssignment {
+  id: number
+  task_id: number
+  assigned_date: string
+  is_completed: boolean
+  completed_at?: string
+  task: DailyTask
+}
+
+interface UserLevel {
+  user_id: number
+  total_points: number
+  current_level: number
+  points_to_next_level: number
+}
+
+interface TaskCompletion {
+  id: number
+  task_id: number
+  completed_at: string
+  points_earned: number
+  task: DailyTask
+}
+
+interface DailyTasksPageData {
+  today_tasks: UserDailyTaskAssignment[]
+  user_level: UserLevel
+  recent_completions: TaskCompletion[]
+}
+
+export default function DailyTasksPage() {
+  const [pageData, setPageData] = useState<DailyTasksPageData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [completingTaskId, setCompletingTaskId] = useState<number | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set())
+
+  const API_BASE = 'http://127.0.0.1:8000/api/v1'
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('access_token')
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  }
+
+  const loadPageData = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${API_BASE}/tasks/daily`, {
+        headers: getAuthHeaders()
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setPageData(data)
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке данных:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const completeTask = async (taskId: number) => {
+    try {
+      setCompletingTaskId(taskId)
+      const response = await fetch(`${API_BASE}/tasks/complete`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ task_id: taskId })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        setSuccessMessage(result.message)
+        
+        // Перезагружаем данные
+        await loadPageData()
+        
+        // Убираем сообщение через 3 секунды
+        setTimeout(() => setSuccessMessage(null), 3000)
+      }
+    } catch (error) {
+      console.error('Ошибка при завершении задания:', error)
+    } finally {
+      setCompletingTaskId(null)
+    }
+  }
+
+  useEffect(() => {
+    loadPageData()
+  }, [])
+
+  const getDifficultyBadge = (difficulty: string) => {
+    switch (difficulty) {
+      case 'легкое':
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Легкое</span>
+      case 'среднее':
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Среднее</span>
+      case 'сложное':
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Сложное</span>
+      default:
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">Неизвестно</span>
+    }
+  }
+
+  const getTaskTypeIcon = (taskType: string) => {
+    switch (taskType) {
+      case 'communication': return <Star className="h-5 w-5" />
+      case 'leadership': return <Trophy className="h-5 w-5" />
+      case 'teamwork': return <Target className="h-5 w-5" />
+      case 'problem_solving': return <Zap className="h-5 w-5" />
+      case 'time_management': return <Clock className="h-5 w-5" />
+      case 'emotional_intelligence': return <Gift className="h-5 w-5" />
+      default: return <Star className="h-5 w-5" />
+    }
+  }
+
+  const getTaskTypeLabel = (taskType: string) => {
+    switch (taskType) {
+      case 'communication': return 'Коммуникация'
+      case 'leadership': return 'Лидерство'
+      case 'teamwork': return 'Командная работа'
+      case 'problem_solving': return 'Решение проблем'
+      case 'time_management': return 'Управление временем'
+      case 'emotional_intelligence': return 'Эмоциональный интеллект'
+      default: return taskType
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!pageData) {
+    return (
+      <div className="text-center py-12">
+        <p>Не удалось загрузить данные о заданиях</p>
+      </div>
+    )
+  }
+
+  // Исправленный расчет прогресса и очков для уровня
+  const getLevelData = () => {
+    const currentLevel = pageData.user_level.current_level
+    const totalPoints = pageData.user_level.total_points
+    
+    // Вычисляем очки для текущего уровня
+    let pointsForCurrentLevel = 0
+    let pointsForNextLevel = 0
+    
+    if (currentLevel === 1) {
+      pointsForCurrentLevel = 0
+      pointsForNextLevel = 100
+    } else if (currentLevel === 2) {
+      pointsForCurrentLevel = 100
+      pointsForNextLevel = 250
+    } else if (currentLevel === 3) {
+      pointsForCurrentLevel = 250
+      pointsForNextLevel = 450
+    } else if (currentLevel === 4) {
+      pointsForCurrentLevel = 450
+      pointsForNextLevel = 700
+    } else {
+      pointsForCurrentLevel = 700 + (currentLevel - 5) * 300
+      pointsForNextLevel = 700 + (currentLevel - 4) * 300
+    }
+    
+    const pointsInCurrentLevel = totalPoints - pointsForCurrentLevel
+    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel
+    const progressPercent = Math.max(0, Math.min(100, (pointsInCurrentLevel / pointsNeededForLevel) * 100))
+    
+    // Правильный расчет очков до следующего уровня
+    const pointsToNextLevel = pointsNeededForLevel - pointsInCurrentLevel
+    
+    return {
+      currentPoints: pointsInCurrentLevel,
+      totalPointsForLevel: pointsNeededForLevel,
+      progressPercent,
+      pointsToNext: pointsToNextLevel
+    }
+  }
+
+  const levelData = getLevelData()
+
+  return (
+    <div className="space-y-8">
+      {/* Заголовок */}
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <Calendar className="h-8 w-8 text-primary" />
+          Задания
+        </h2>
+        <p className="text-muted-foreground">
+          Выполняйте задания для развития гибких навыков и получения очков
+        </p>
+      </div>
+
+      {/* Уведомление о выполнении */}
+      {successMessage && (
+        <Alert className="bg-green-50 border-green-200">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Прогресс до следующего уровня */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">
+              Уровень {pageData.user_level.current_level}
+            </h3>
+            <span className="text-lg font-semibold text-primary">
+              XP: {levelData.currentPoints} / {levelData.totalPointsForLevel}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-2">
+            <Progress value={levelData.progressPercent} className="h-3" />
+            <p className="text-sm text-muted-foreground">
+              Нужно еще {levelData.pointsToNext} очков для повышения уровня
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Задания на сегодня */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Активные задания
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Выполните задания, чтобы получить очки и развить навыки. После каждого выполненного задания появится новое!
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {pageData.today_tasks.map((assignment) => (
+              <div
+                key={assignment.id}
+                className="p-4 border rounded-lg space-y-3 hover:border-primary/50 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    {getTaskTypeIcon(assignment.task.task_type)}
+                    <span className="text-xs text-muted-foreground">
+                      {getTaskTypeLabel(assignment.task.task_type)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getDifficultyBadge(assignment.task.difficulty)}
+                    <span className="text-sm font-medium text-primary">
+                      +{assignment.task.points} очков
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-1">{assignment.task.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {assignment.task.description}
+                  </p>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  {assignment.is_completed ? (
+                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs font-medium">
+                      <CheckCircle className="h-3 w-3" />
+                      Выполнено
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => completeTask(assignment.task_id)}
+                      disabled={completingTaskId === assignment.task_id}
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                    >
+                      {completingTaskId === assignment.task_id ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Отмечается...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Отметить выполненным
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Недавние достижения */}
+      {pageData.recent_completions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5" />
+              Недавние достижения
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pageData.recent_completions.map((completion) => (
+                <div
+                  key={completion.id}
+                  className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium">{completion.task.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(completion.completed_at).toLocaleDateString('ru-RU')}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full">
+                    +{completion.points_earned} очков
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+} 

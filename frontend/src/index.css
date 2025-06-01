@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
+    --skills-notification-bg: 262.1 100% 97%;
+    --skills-notification-border: 262.1 83.3% 85%;
+    --skills-notification-text: 262.1 83.3% 25%;
+    --skills-notification-button: 262.1 83.3% 57.8%;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262.1 83.3% 67.8%;
+    --primary-foreground: 262.1 83.3% 17.8%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 67.8%;
+    --skills-notification-bg: 262.1 83.3% 15%;
+    --skills-notification-border: 262.1 83.3% 25%;
+    --skills-notification-text: 262.1 83.3% 85%;
+    --skills-notification-button: 262.1 83.3% 67.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Кастомные стили для уведомления о навыках */
+.skills-notification {
+  background-color: hsl(var(--skills-notification-bg));
+  border-color: hsl(var(--skills-notification-border));
+}
+
+.skills-notification-text {
+  color: hsl(var(--skills-notification-text));
+}
+
+.skills-notification-button {
+  background-color: hsl(var(--skills-notification-button));
+  border-color: hsl(var(--skills-notification-button));
+}
+
+.skills-notification-button:hover {
+  background-color: hsl(var(--skills-notification-button) / 0.9);
+}
+
+/* Утилита для обрезки текста */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

@@ -1,0 +1,9 @@
+{
+    "email": "debug@test.com",
+    "full_name": "\u041e\u0442\u043b\u0430\u0434\u0447\u0438\u043a \u0422\u0435\u0441\u0442\u0435\u0440",
+    "role": "student",
+    "id": 1,
+    "is_active": true,
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZWJ1Z0B0ZXN0LmNvbSIsImV4cCI6MTc0ODc4MTc4NX0.hQvMM2CTwX1Y08kZcHDRmDCMX5B0whznR6R6E47Y4_Y",
+    "token_type": "bearer"
+}

@@ -1,0 +1,9 @@
+{
+    "email": "testuser2@test.com",
+    "full_name": "\u0422\u0435\u0441\u0442\u043e\u0432\u044b\u0439 \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c 2",
+    "role": "student",
+    "id": 1,
+    "is_active": true,
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlcjJAdGVzdC5jb20iLCJleHAiOjE3NDg3ODEyMTB9.93D1gFs9-a_VwftG4t7plAM-he_-oxg6Vjut6eLBHuQ",
+    "token_type": "bearer"
+}
