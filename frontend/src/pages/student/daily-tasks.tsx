@@ -126,13 +126,13 @@ export default function DailyTasksPage() {
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
       case 'легкое':
-        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Легкое</span>
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 hover:bg-green-100">Легкое</span>
       case 'среднее':
-        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Среднее</span>
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Среднее</span>
       case 'сложное':
-        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Сложное</span>
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 hover:bg-red-100">Сложное</span>
       default:
-        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">Неизвестно</span>
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-100">Неизвестно</span>
     }
   }
 
@@ -306,7 +306,7 @@ export default function DailyTasksPage() {
                 
                 <div className="flex justify-between items-center">
                   {assignment.is_completed ? (
-                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs font-medium">
+                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs font-medium hover:bg-green-100">
                       <CheckCircle className="h-3 w-3" />
                       Выполнено
                     </div>
@@ -363,7 +363,7 @@ export default function DailyTasksPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full">
+                  <span className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full hover:bg-green-100">
                     +{completion.points_earned} очков
                   </span>
                 </div>

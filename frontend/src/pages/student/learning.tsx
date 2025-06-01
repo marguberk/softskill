@@ -176,7 +176,7 @@ export default function LearningPage() {
                         {getTypeLabel(material.content_type)}
                       </Badge>
                     </div>
-                    <Badge className={getLevelColor(material.difficulty_level)}>
+                    <Badge className={`${getLevelColor(material.difficulty_level)} hover:${getLevelColor(material.difficulty_level)}`}>
                       {LEVEL_MAP[material.difficulty_level]}
                     </Badge>
                   </div>

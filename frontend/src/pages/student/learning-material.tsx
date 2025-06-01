@@ -273,7 +273,7 @@ export default function LearningMaterialPage() {
               <Clock className="h-4 w-4" />
               {material.duration}
             </div>
-            <Badge className={getLevelColor(material.level)}>
+            <Badge className={`${getLevelColor(material.level)} hover:${getLevelColor(material.level)}`}>
               {LEVEL_MAP[material.level]}
             </Badge>
             <Badge variant="outline">
