@@ -123,11 +123,12 @@ export default function LearningPage() {
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-3">
+            <Card key={i} className="h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="animate-pulse space-y-3 flex flex-col h-full">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="flex-1"></div>
                   <div className="h-3 bg-gray-200 rounded w-1/4"></div>
                 </div>
               </CardContent>
@@ -166,9 +167,9 @@ export default function LearningPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredMaterials.map((material) => (
           <Link key={material.id} to={`/learning/${material.id}`}>
-            <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="space-y-4">
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex flex-col h-full space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {getTypeIcon(material.content_type)}
@@ -176,21 +177,21 @@ export default function LearningPage() {
                         {getTypeLabel(material.content_type)}
                       </Badge>
                     </div>
-                    <Badge className={`${getLevelColor(material.difficulty_level)} hover:${getLevelColor(material.difficulty_level)}`}>
+                    <Badge className={`${getLevelColor(material.difficulty_level)} hover:${getLevelColor(material.difficulty_level)} shrink-0`}>
                       {LEVEL_MAP[material.difficulty_level]}
                     </Badge>
                   </div>
                   
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
                       {material.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
+                    <p className="text-sm text-muted-foreground line-clamp-3 min-h-[4.5rem]">
                       {material.description}
                     </p>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-auto">
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
@@ -199,7 +200,7 @@ export default function LearningPage() {
                     </div>
                     
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Автор: {material.author}</span>
+                      <span className="truncate">Автор: {material.author}</span>
                     </div>
                   </div>
                 </div>
