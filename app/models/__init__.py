@@ -8,5 +8,5 @@ from .skills import (
     SoftSkill, SkillQuestion, QuestionOption, SkillAssessment,
     UserAnswer, UserSkillAssessment, SkillCategory, SkillLevel
 )
-from .tasks import DailyTask, UserDailyTaskAssignment, TaskCompletion
+from .tasks import DailyTask, UserDailyTaskAssignment, TaskCompletion, UserLevel
 from .progress import UserProgress, LessonProgress, Achievement, UserAchievement

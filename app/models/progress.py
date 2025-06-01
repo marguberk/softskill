@@ -28,9 +28,9 @@ class UserProgress(Base):
     total_time_spent = Column(Integer, default=0)  # в минутах
     average_score = Column(Float, default=0.0)
 
-    # Связи
-    user = relationship("User", back_populates="progress")
-    course = relationship("Course", back_populates="students_progress")
+    # Связи - убираем back_populates для несуществующих свойств
+    user = relationship("User")
+    course = relationship("Course")
     lesson_progress = relationship("LessonProgress", back_populates="user_progress")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -42,7 +42,7 @@ class LessonProgress(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_progress_id = Column(Integer, ForeignKey("user_progress.id"))
-    lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    lesson_id = Column(Integer, ForeignKey("learning_materials.id"))
 
     # Статус и результаты
     status = Column(Enum(LessonStatus), default=LessonStatus.NOT_STARTED)
@@ -54,9 +54,9 @@ class LessonProgress(Base):
     notes = Column(String, nullable=True)
     last_position = Column(Integer, default=0)  # для видео-уроков
 
-    # Связи
+    # Связи - убираем back_populates для несуществующих свойств
     user_progress = relationship("UserProgress", back_populates="lesson_progress")
-    lesson = relationship("Lesson", back_populates="progress")
+    lesson = relationship("LearningMaterial")  # Используем LearningMaterial вместо Lesson
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

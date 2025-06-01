@@ -180,79 +180,76 @@ export default function DailyTasksPage() {
         </Alert>
       )}
 
-      {/* Задания на сегодня */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Активные задания
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Выполните задания, чтобы получить очки и развить навыки. После каждого выполненного задания появится новое!
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {pageData.today_tasks.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="p-4 border rounded-lg space-y-3 hover:border-primary/50 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    {getTaskTypeIcon(assignment.task.task_type)}
-                    <span className="text-xs text-muted-foreground">
-                      {getTaskTypeLabel(assignment.task.task_type)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getDifficultyBadge(assignment.task.difficulty)}
-                    <span className="text-sm font-medium text-primary">
-                      +{assignment.task.points} очков
-                    </span>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-sm mb-1">{assignment.task.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {assignment.task.description}
-                  </p>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  {assignment.is_completed ? (
-                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs font-medium hover:bg-green-100">
-                      <CheckCircle className="h-3 w-3" />
-                      Выполнено
+      {/* Карточки заданий напрямую */}
+      <div className="space-y-3">
+        {pageData.today_tasks.length > 0 ? (
+          pageData.today_tasks.map((assignment) => (
+            <Card key={assignment.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                      {getTaskTypeIcon(assignment.task.task_type)}
+                      <span className="text-sm text-muted-foreground">
+                        {getTaskTypeLabel(assignment.task.task_type)}
+                      </span>
                     </div>
-                  ) : (
-                    <Button
-                      onClick={() => completeTask(assignment.task_id)}
-                      disabled={completingTaskId === assignment.task_id}
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                    >
-                      {completingTaskId === assignment.task_id ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          Отмечается...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Отметить выполненным
-                        </>
-                      )}
-                    </Button>
-                  )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-primary">
+                        +{assignment.task.points} очков
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">{assignment.task.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {assignment.task.description}
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    {assignment.is_completed ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg font-medium">
+                        <CheckCircle className="h-4 w-4" />
+                        Выполнено
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => completeTask(assignment.task_id)}
+                        disabled={completingTaskId === assignment.task_id}
+                        className="min-w-[160px]"
+                      >
+                        {completingTaskId === assignment.task_id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Отмечается...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Отметить выполненным
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Заданий пока нет</h3>
+              <p className="text-muted-foreground">
+                Новые задания появятся скоро
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 } 

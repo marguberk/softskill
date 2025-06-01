@@ -81,5 +81,5 @@ class UserLevel(Base):
     current_level = Column(Integer, default=1)
     points_to_next_level = Column(Integer, default=100)
     
-    # Связи
-    user = relationship("User", back_populates="level") 
+    # Связи - убираем back_populates так как User.level больше нет
+    user = relationship("User") 

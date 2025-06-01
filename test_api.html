@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+</head>
+<body>
+    <h1>Test API Connection</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testCourses()">Test Courses</button>
+    <div id="result"></div>
+
+    <script>
+        let token = null;
+
+        async function testLogin() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'username=test@test.ru&password=123456'
+                });
+                
+                const data = await response.json();
+                if (data.access_token) {
+                    token = data.access_token;
+                    document.getElementById('result').innerHTML = 'Login successful! Token: ' + token.substring(0, 20) + '...';
+                } else {
+                    document.getElementById('result').innerHTML = 'Login failed: ' + JSON.stringify(data);
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Login error: ' + error.message;
+            }
+        }
+
+        async function testCourses() {
+            if (!token) {
+                document.getElementById('result').innerHTML = 'Please login first';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/courses/', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 'Courses: ' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Courses error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 

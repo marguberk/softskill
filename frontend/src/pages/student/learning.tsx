@@ -1,33 +1,37 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
-import { Button } from "../../components/ui/button"
+import { Card, CardContent } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
 import { Badge } from "../../components/ui/badge"
 import {
   BookOpen,
-  Play,
-  Clock,
   Search,
-  ExternalLink
+  Clock,
+  Star,
+  Users,
+  Play,
+  Calendar
 } from "lucide-react"
 
-// Типы контента для обучения
-interface LearningMaterial {
+// Обновленный интерфейс для курсов
+interface Course {
   id: number
   title: string
   description: string
-  content_type: 'video' | 'article' | 'tutorial'
   skill_type: string
   difficulty_level: 'beginner' | 'intermediate' | 'advanced'
-  duration_minutes: number
-  author: string
-  theory_content?: string
-  video_url?: string
-  video_id?: string
-  source_url?: string
+  duration_hours: number
   is_published: boolean
   created_at: string
+}
+
+const SKILLS_MAP = {
+  communication: 'Коммуникация',
+  leadership: 'Лидерство',
+  problem_solving: 'Решение проблем',
+  time_management: 'Управление временем',
+  emotional_intelligence: 'Эмоциональный интеллект',
+  teamwork: 'Командная работа'
 }
 
 const LEVEL_MAP = {
@@ -37,56 +41,30 @@ const LEVEL_MAP = {
 }
 
 export default function LearningPage() {
-  const [materials, setMaterials] = useState<LearningMaterial[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Загружаем материалы из API
+  // Загружаем курсы из нового API
   useEffect(() => {
-    loadMaterials()
+    loadCourses()
   }, [])
 
-  const loadMaterials = async () => {
+  const loadCourses = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8000/api/v1/materials')
+      const response = await fetch('http://localhost:8002/api/v1/courses/')
       
       if (!response.ok) {
-        throw new Error('Ошибка загрузки материалов')
+        throw new Error('Ошибка загрузки курсов')
       }
 
       const data = await response.json()
-      setMaterials(data)
+      setCourses(data)
     } catch (error) {
-      console.error('Ошибка загрузки материалов:', error)
+      console.error('Ошибка загрузки курсов:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Play className="h-4 w-4" />
-      case 'article':
-        return <BookOpen className="h-4 w-4" />
-      case 'tutorial':
-        return <BookOpen className="h-4 w-4" />
-      default:
-        return <BookOpen className="h-4 w-4" />
-    }
-  }
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'video':
-        return 'Видео'
-      case 'article':
-        return 'Статья'
-      case 'tutorial':
-        return 'Урок'
-      default:
-        return 'Материал'
     }
   }
 
@@ -103,9 +81,9 @@ export default function LearningPage() {
     }
   }
 
-  const filteredMaterials = materials.filter(material => {
-    const matchesSearch = material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         material.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesSearch
   })
 
@@ -118,7 +96,7 @@ export default function LearningPage() {
             Обучение
           </h2>
           <p className="text-muted-foreground">
-            Загрузка материалов...
+            Загрузка курсов...
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -141,66 +119,63 @@ export default function LearningPage() {
 
   return (
     <div className="space-y-8">
-      {/* Заголовок */}
+      {/* Заголовок и описание */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <BookOpen className="h-8 w-8 text-primary" />
           Обучение
         </h2>
         <p className="text-muted-foreground">
-          Теоретические материалы, видео и уроки для развития гибких навыков
+          Бесплатные курсы для развития профессиональных навыков. Начните изучение прямо сейчас!
         </p>
       </div>
 
       {/* Поиск */}
-      <div className="relative max-w-md">
+      <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Поиск материалов..."
+          placeholder="Поиск курсов..."
           className="pl-10"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      {/* Сетка материалов */}
+      {/* Сетка курсов */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredMaterials.map((material) => (
-          <Link key={material.id} to={`/learning/${material.id}`}>
+        {filteredCourses.map((course) => (
+          <Link key={course.id} to={`/courses/${course.id}`}>
             <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
-              <CardContent className="p-6 h-full flex flex-col">
-                <div className="flex flex-col h-full space-y-4">
+              <CardContent className="p-4 h-full flex flex-col">
+                <div className="flex flex-col h-full space-y-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      {getTypeIcon(material.content_type)}
-                      <Badge variant="outline">
-                        {getTypeLabel(material.content_type)}
-                      </Badge>
-                    </div>
-                    <Badge className={`${getLevelColor(material.difficulty_level)} hover:${getLevelColor(material.difficulty_level)} shrink-0`}>
-                      {LEVEL_MAP[material.difficulty_level]}
+                    <Badge variant="secondary" className="mb-2">
+                      {SKILLS_MAP[course.skill_type as keyof typeof SKILLS_MAP] || course.skill_type}
                     </Badge>
+                    <div className="flex items-center gap-2">
+                      <Play className="h-4 w-4 text-primary" />
+                    </div>
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
-                      {material.title}
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[2.5rem]">
+                      {course.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-3 min-h-[4.5rem]">
-                      {material.description}
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                      {course.description}
                     </p>
                   </div>
                   
-                  <div className="space-y-3 mt-auto">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {material.duration_minutes} мин
-                      </div>
-                    </div>
-                    
+                  <div className="space-y-2 mt-auto">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="truncate">Автор: {material.author}</span>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {course.duration_hours} часов
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(course.created_at).toLocaleDateString('ru-RU')}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -211,16 +186,16 @@ export default function LearningPage() {
       </div>
 
       {/* Пустое состояние */}
-      {filteredMaterials.length === 0 && !loading && (
+      {filteredCourses.length === 0 && !loading && (
         <Card>
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">
-              {materials.length === 0 ? 'Материалы не найдены' : 'Нет результатов поиска'}
+              {courses.length === 0 ? 'Курсы не найдены' : 'Нет результатов поиска'}
             </h3>
             <p className="text-muted-foreground">
-              {materials.length === 0 
-                ? 'Пока нет доступных обучающих материалов'
+              {courses.length === 0 
+                ? 'Пока нет доступных курсов'
                 : 'Попробуйте изменить параметры поиска'
               }
             </p>
