@@ -289,17 +289,6 @@ export default function MaterialPage() {
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Содержание материала</h2>
             
-            {/* Отображение теоретического контента */}
-            {material.theory_content && (
-              <div className="prose max-w-none">
-                <div 
-                  dangerouslySetInnerHTML={{ 
-                    __html: marked(material.theory_content) 
-                  }} 
-                />
-              </div>
-            )}
-            
             {/* Видео контент */}
             {material.content_type === 'video' && material.video_url && (
               <div className="space-y-4">
@@ -313,6 +302,17 @@ export default function MaterialPage() {
                   allowFullScreen
                   className="rounded-lg"
                   onError={handleIframeError}
+                />
+              </div>
+            )}
+            
+            {/* Отображение теоретического контента */}
+            {material.theory_content && (
+              <div className="prose max-w-none">
+                <div 
+                  dangerouslySetInnerHTML={{ 
+                    __html: marked(material.theory_content) 
+                  }} 
                 />
               </div>
             )}
