@@ -25,6 +25,7 @@ class UserGameProfile(Base):
     # Основные показатели
     level = Column(Integer, default=1)
     experience = Column(Integer, default=0)
+    experience_points = Column(Integer, default=0)
     total_points = Column(Integer, default=0)
 
     # Статистика

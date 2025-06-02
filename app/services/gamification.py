@@ -5,14 +5,14 @@ from typing import Dict, List, Optional, Tuple
 import math
 
 from app.models.course import Course, CourseCompletion
+from app.models.gamification import UserGameProfile, UserActivity, Reward, UserReward, Leaderboard
 from app.models.progress import (
-    UserGameProfile, MaterialProgress, UserProgress, 
-    LessonProgress, Achievement, UserAchievement
+    UserProgress, LessonProgress, Achievement, UserAchievement
 )
 from app.models.skills import (
     SoftSkill, SkillLevel, UserSkillAssessment, SkillAssessment
 )
-from app.models.learning import LearningMaterial
+from app.models.learning_material import LearningMaterial
 from app.schemas.gamification import (
     LevelUpResult, XPGainResult, SkillProgressResult, ProgressSummary
 )

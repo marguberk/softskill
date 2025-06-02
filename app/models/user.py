@@ -23,6 +23,7 @@ class User(Base):
     task_completions = relationship("TaskCompletion", back_populates="user")
     user_progress = relationship("UserProgress", back_populates="user")  # Прогресс по курсам
     achievements = relationship("UserAchievement", back_populates="user")  # Достижения
+    game_profile = relationship("UserGameProfile", back_populates="user")  # Игровой профиль
     
     # Временная заглушка для совместимости
     @property
