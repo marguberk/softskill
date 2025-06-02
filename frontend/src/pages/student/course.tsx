@@ -16,6 +16,8 @@ import {
   FileText,
   CheckSquare
 } from "lucide-react"
+import { generateCertificate } from "../../utils/certificateGenerator"
+import { useAuthStore } from "../../stores/auth"
 
 // Интерфейс для курса
 interface Course {
@@ -63,6 +65,15 @@ interface CourseLessonsData {
   total_lessons: number
 }
 
+const SKILLS_MAP_EN = {
+  communication: 'Communication',
+  leadership: 'Leadership',
+  problem_solving: 'Problem Solving',
+  time_management: 'Time Management',
+  emotional_intelligence: 'Emotional Intelligence',
+  teamwork: 'Teamwork'
+}
+
 const SKILLS_MAP = {
   communication: 'Коммуникация',
   leadership: 'Лидерство',
@@ -81,6 +92,7 @@ const LEVEL_MAP = {
 export default function CoursePage() {
   const { courseId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [course, setCourse] = useState<Course | null>(null)
   const [lessonsData, setLessonsData] = useState<CourseLessonsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -121,6 +133,32 @@ export default function CoursePage() {
     const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
     const lessonKey = `${courseId}-${lessonId}`
     return completedLessons[lessonKey] || false
+  }
+
+  const isAllLessonsCompleted = () => {
+    if (!lessonsData || !courseId) return false
+    return lessonsData.lessons.every(lesson => isLessonCompleted(lesson.lesson_id))
+  }
+
+  const handleGetCertificate = () => {
+    if (!course || !courseId) return
+    
+    // Получаем имя пользователя из профиля
+    const studentName = user?.full_name || 'Student'
+    
+    if (!studentName || studentName === 'Student') {
+      alert('Пожалуйста, заполните ваше полное имя в профиле для получения сертификата')
+      navigate('/profile')
+      return
+    }
+    
+    generateCertificate({
+      studentName,
+      courseName: course.title,
+      courseType: SKILLS_MAP[course.skill_type as keyof typeof SKILLS_MAP] || course.skill_type,
+      completionDate: new Date().toLocaleDateString('ru-RU'),
+      duration: course.duration_hours
+    })
   }
 
   const loadCourseData = async (id: number) => {
@@ -237,12 +275,23 @@ export default function CoursePage() {
           <p className="text-muted-foreground mb-4">{course.description}</p>
         </div>
         <Button size="lg" className="min-w-[200px]" onClick={() => {
-          if (lessonsData && lessonsData.lessons.length > 0) {
+          if (isAllLessonsCompleted()) {
+            handleGetCertificate()
+          } else if (lessonsData && lessonsData.lessons.length > 0) {
             navigate(`/courses/${courseId}/lessons/${lessonsData.lessons[0].lesson_id}`)
           }
         }}>
-          <PlayCircle className="h-5 w-5 mr-2" />
-          Начать изучение
+          {isAllLessonsCompleted() ? (
+            <>
+              <Award className="h-5 w-5 mr-2" />
+              Получить сертификат
+            </>
+          ) : (
+            <>
+              <PlayCircle className="h-5 w-5 mr-2" />
+              Начать изучение
+            </>
+          )}
         </Button>
       </div>
 
@@ -251,17 +300,27 @@ export default function CoursePage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Прогресс курса</span>
+              <span className="text-sm font-medium">
+                {isAllLessonsCompleted() ? 'Курс завершен!' : 'Прогресс курса'}
+              </span>
               <span className="text-sm text-muted-foreground">{courseProgress}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  isAllLessonsCompleted() ? 'bg-green-500' : 'bg-primary'
+                }`}
                 style={{ width: `${courseProgress}%` }}
               />
             </div>
             <div className="text-xs text-muted-foreground mt-2">
-              {lessonsData.lessons.filter(lesson => isLessonCompleted(lesson.lesson_id)).length} из {lessonsData.total_lessons} уроков завершено
+              {isAllLessonsCompleted() ? (
+                <span className="text-green-600 font-medium">
+                  🎉 Поздравляем! Все {lessonsData.total_lessons} уроков завершены
+                </span>
+              ) : (
+                `${lessonsData.lessons.filter(lesson => isLessonCompleted(lesson.lesson_id)).length} из ${lessonsData.total_lessons} уроков завершено`
+              )}
             </div>
           </CardContent>
         </Card>
