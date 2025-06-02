@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.base import Base, engine, get_db
-from app.api import auth, skills, tasks  # courses временно отключен
+from app.api import auth, skills, tasks, gamification  # courses временно отключен
 from app.api import courses_v2  # новый API курсов
 from app.api import test_api  # тестовый API
 from app.api.v1 import admin
@@ -68,6 +68,7 @@ app.include_router(courses_v2.router, prefix=f"{settings.API_V1_STR}/courses", t
 app.include_router(test_api.router, prefix=f"{settings.API_V1_STR}/test", tags=["test"])
 app.include_router(skills.router, prefix=f"{settings.API_V1_STR}/skills", tags=["skills"])
 app.include_router(tasks.router, prefix=f"{settings.API_V1_STR}/tasks", tags=["tasks"])
+app.include_router(gamification.router, prefix=f"{settings.API_V1_STR}/gamification", tags=["gamification"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"])
 app.include_router(materials.router, prefix=f"{settings.API_V1_STR}", tags=["materials"])
 

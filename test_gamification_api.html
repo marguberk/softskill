@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование API геймификации MaroAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .login-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Тестирование API геймификации MaroAI</h1>
+    
+    <div class="container">
+        <h2>🔐 Авторизация</h2>
+        <div class="login-form">
+            <input type="email" id="email" placeholder="Email" value="admin@example.com">
+            <input type="password" id="password" placeholder="Пароль" value="admin123">
+            <button onclick="login()">Войти</button>
+        </div>
+        <div id="loginResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Тестирование геймификации</h2>
+        <button onclick="getProfile()">Получить профиль</button>
+        <button onclick="getProgress()">Получить прогресс</button>
+        <button onclick="getDashboard()">Получить дашборд</button>
+        <button onclick="completeCourse(1)">Завершить курс 1</button>
+        <button onclick="completeCourse(2)">Завершить курс 2</button>
+        <button onclick="completeLesson(1)">Завершить урок 1</button>
+        <div id="apiResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>🎯 Навыки пользователя</h2>
+        <button onclick="getSkills()">Получить навыки</button>
+        <div id="skillsResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const API_BASE = 'http://localhost:8002/api/v1';
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('loginResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    authToken = data.access_token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Успешная авторизация!\nТокен: ${authToken.substring(0, 50)}...`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Ошибка авторизации: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('loginResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка сети: ${error.message}`;
+            }
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            if (!authToken) {
+                alert('Сначала авторизуйтесь!');
+                return;
+            }
+
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                const data = await response.json();
+                
+                const resultDiv = document.getElementById('apiResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ ${endpoint}\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ${endpoint}\nОшибка: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('apiResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка сети: ${error.message}`;
+            }
+        }
+
+        async function getProfile() {
+            await apiCall('/gamification/profile');
+        }
+
+        async function getProgress() {
+            await apiCall('/gamification/progress');
+        }
+
+        async function getDashboard() {
+            await apiCall('/gamification/dashboard');
+        }
+
+        async function completeCourse(courseId) {
+            await apiCall(`/gamification/complete-course/${courseId}`, 'POST');
+        }
+
+        async function completeLesson(lessonId) {
+            await apiCall(`/gamification/complete-lesson/${lessonId}?score=95`, 'POST');
+        }
+
+        async function getSkills() {
+            if (!authToken) {
+                alert('Сначала авторизуйтесь!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/skills/skills`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    }
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('skillsResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Навыки пользователя:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Ошибка получения навыков: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('skillsResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка сети: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 
