@@ -13,7 +13,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Логотип */}
           <div className="border-b h-14 flex items-center px-4">
-            <h1 className="text-xl font-bold">MaroAI</h1>
+            <h1 className="text-xl font-bold">Soft Skill</h1>
           </div>
 
           {/* Основная навигация */}

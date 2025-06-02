@@ -105,7 +105,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
         <div className="flex flex-1 flex-col h-full bg-card border-r">
           {/* Логотип */}
           <div className="flex h-16 items-center px-4">
-            <h1 className="text-2xl font-bold">MaroAI</h1>
+            <h1 className="text-2xl font-bold">Soft Skill</h1>
           </div>
 
           {/* Навигация */}

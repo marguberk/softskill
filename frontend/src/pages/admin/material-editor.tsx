@@ -103,7 +103,7 @@ export default function MaterialEditor() {
         throw new Error('Не авторизован')
       }
 
-      const response = await fetch(`http://localhost:8000/api/v1/admin/materials/${materialId}`, {
+      const response = await fetch(`http://localhost:8002/api/v1/admin/materials/${materialId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -175,7 +175,7 @@ export default function MaterialEditor() {
       let response
       if (isEditing && materialId) {
         // Обновление существующего материала
-        response = await fetch(`http://localhost:8000/api/v1/admin/materials/${materialId}`, {
+        response = await fetch(`http://localhost:8002/api/v1/admin/materials/${materialId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export default function MaterialEditor() {
         })
       } else {
         // Создание нового материала
-        response = await fetch('http://localhost:8000/api/v1/admin/materials', {
+        response = await fetch('http://localhost:8002/api/v1/admin/materials', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -372,7 +372,7 @@ export default function MaterialEditor() {
           </Card>
 
           {/* Видео */}
-          {formData.content_type === 'video' && (
+          {formData.content_type.toLowerCase() === 'video' && (
             <Card>
               <CardHeader>
                 <CardTitle>Видео</CardTitle>

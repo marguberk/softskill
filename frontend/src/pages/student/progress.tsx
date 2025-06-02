@@ -50,7 +50,7 @@ export default function StudentProgress() {
   const [pageData, setPageData] = useState<ProgressPageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const API_BASE = 'http://127.0.0.1:8000/api/v1'
+  const API_BASE = 'http://127.0.0.1:8002/api/v1'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('access_token')

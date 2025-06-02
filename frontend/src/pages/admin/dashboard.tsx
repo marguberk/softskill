@@ -60,7 +60,7 @@ export default function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Панель управления</h1>
           <p className="text-muted-foreground">
-            Добро пожаловать в административную панель MaroAI
+            Добро пожаловать в административную панель Soft Skill
           </p>
         </div>
         <Link to="/admin/materials/new">

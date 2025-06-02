@@ -55,7 +55,7 @@ const SkillsAssessment: React.FC = () => {
   const [results, setResults] = useState<AssessmentResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE = 'http://127.0.0.1:8000/api/v1'
+  const API_BASE = 'http://127.0.0.1:8002/api/v1'
 
   const getSkillCategoryRussian = (category: string) => {
     const translations: { [key: string]: string } = {

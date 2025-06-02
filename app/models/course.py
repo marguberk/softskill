@@ -38,6 +38,7 @@ class Course(Base):
     enrollments = relationship("CourseEnrollment", back_populates="course", cascade="all, delete-orphan")
     exams = relationship("CourseExam", back_populates="course", cascade="all, delete-orphan")
     completions = relationship("CourseCompletion", back_populates="course", cascade="all, delete-orphan")
+    modules = relationship("Module", back_populates="course", cascade="all, delete-orphan")
 
 class CourseLesson(Base):
     __tablename__ = "course_lessons"
@@ -124,3 +125,32 @@ class Certificate(Base):
 
     # Связи
     completion = relationship("CourseCompletion", back_populates="certificate")
+
+class Module(Base):
+    __tablename__ = "modules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    order = Column(Integer, default=0)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Связи
+    course = relationship("Course", back_populates="modules")
+    lessons = relationship("Lesson", back_populates="module", cascade="all, delete-orphan")
+
+class Lesson(Base):
+    __tablename__ = "lessons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    content = Column(Text)
+    order = Column(Integer, default=0)
+    module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Связи
+    module = relationship("Module", back_populates="lessons")

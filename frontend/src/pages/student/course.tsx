@@ -80,13 +80,22 @@ const SKILLS_MAP = {
   problem_solving: 'Решение проблем',
   time_management: 'Управление временем',
   emotional_intelligence: 'Эмоциональный интеллект',
-  teamwork: 'Командная работа'
+  teamwork: 'Командная работа',
+  COMMUNICATION: 'Коммуникация',
+  LEADERSHIP: 'Лидерство',
+  PROBLEM_SOLVING: 'Решение проблем',
+  TIME_MANAGEMENT: 'Управление временем',
+  EMOTIONAL_INTELLIGENCE: 'Эмоциональный интеллект',
+  TEAMWORK: 'Командная работа'
 }
 
 const LEVEL_MAP = {
   beginner: 'Начинающий',
   intermediate: 'Средний',
-  advanced: 'Продвинутый'
+  advanced: 'Продвинутый',
+  BEGINNER: 'Начинающий',
+  INTERMEDIATE: 'Средний',
+  ADVANCED: 'Продвинутый'
 }
 
 export default function CoursePage() {
@@ -200,7 +209,7 @@ export default function CoursePage() {
   }
 
   const getContentTypeIcon = (contentType: string) => {
-    switch (contentType) {
+    switch (contentType.toLowerCase()) {
       case 'video':
         return <Video className="h-4 w-4" />
       case 'article':
@@ -392,7 +401,7 @@ export default function CoursePage() {
                           </div>
                           {getContentTypeIcon(lesson.material.content_type)}
                           <h3 className="font-semibold text-lg">{lesson.material.title}</h3>
-                          {lesson.material.content_type === 'video' && (
+                          {lesson.material.content_type.toLowerCase() === 'video' && (
                             <Badge variant="outline" className="text-xs">
                               <Video className="h-3 w-3 mr-1" />
                               Видео

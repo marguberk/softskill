@@ -218,7 +218,7 @@ export const generateCertificate = (data: CertificateData) => {
         </div>
         
         <div class="header">
-          <div class="logo">MaroAI</div>
+          <div class="logo">Soft Skill</div>
           <div class="cert-type">/ сертификат</div>
         </div>
         
@@ -230,7 +230,7 @@ export const generateCertificate = (data: CertificateData) => {
           <div class="course-description">
             успешно&nbsp;&nbsp;завершил (а)&nbsp;курс&nbsp;и&nbsp;изучил (а)<br>
             соответствующие&nbsp;&nbsp;&nbsp;информационные<br>
-            материалы&nbsp;&nbsp;на&nbsp;платформе&nbsp;&nbsp;MaroAI
+            материалы&nbsp;&nbsp;на&nbsp;платформе&nbsp;&nbsp;Soft&nbsp;Skill
           </div>
           
           <div class="course-name">${data.courseName}</div>

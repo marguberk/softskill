@@ -13,6 +13,7 @@ import {
   User,
   Calendar
 } from "lucide-react"
+import ReactMarkdown from "react-markdown"
 
 interface LearningMaterial {
   id: number
@@ -43,6 +44,7 @@ export default function MaterialPage() {
   const [loading, setLoading] = useState(true)
   const [completing, setCompleting] = useState(false)
   const [completed, setCompleted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (id) {
@@ -53,23 +55,23 @@ export default function MaterialPage() {
   const loadMaterial = async (materialId: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:8000/api/v1/materials/${materialId}`)
+      const response = await fetch(`http://localhost:8002/api/v1/materials/${materialId}`)
       
-      if (!response.ok) {
-        throw new Error('Материал не найден')
+      if (response.ok) {
+        const data = await response.json()
+        setMaterial(data)
+      } else {
+        setError('Материал не найден')
       }
-
-      const data = await response.json()
-      setMaterial(data)
-    } catch (error) {
-      console.error('Ошибка загрузки материала:', error)
+    } catch (err) {
+      setError('Ошибка при загрузке материала')
     } finally {
       setLoading(false)
     }
   }
 
   const getTypeIcon = (type: string) => {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'video':
         return <Play className="h-5 w-5" />
       case 'article':
@@ -82,7 +84,7 @@ export default function MaterialPage() {
   }
 
   const getTypeLabel = (type: string) => {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'video':
         return 'Видео'
       case 'article':
@@ -141,7 +143,7 @@ export default function MaterialPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:8000/api/v1/materials/${material.id}/complete`, {
+      const response = await fetch(`http://localhost:8002/api/v1/materials/${material.id}/complete`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -289,33 +291,30 @@ export default function MaterialPage() {
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Содержание материала</h2>
             
-            {/* Видео контент */}
-            {material.content_type === 'video' && material.video_url && (
-              <div className="space-y-4">
-                <iframe
-                  width="100%"
-                  height="400"
-                  src={getEmbedUrl(material.video_url)}
-                  title={material.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="rounded-lg"
-                  onError={handleIframeError}
-                />
-              </div>
+            {/* Видео */}
+            {material.content_type.toLowerCase() === 'video' && material.video_url && (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="aspect-video">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${material.video_id}`}
+                      title={material.title}
+                      className="w-full h-full rounded-lg"
+                      allowFullScreen
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             )}
             
-            {/* Отображение теоретического контента */}
-            {material.theory_content && (
-              <div className="prose max-w-none">
-                <div 
-                  dangerouslySetInnerHTML={{ 
-                    __html: marked(material.theory_content) 
-                  }} 
-                />
-              </div>
-            )}
+            {/* Контент */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="prose prose-lg max-w-none">
+                  <ReactMarkdown>{material.theory_content}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
             
             {/* Ссылка на источник */}
             {material.source_url && (
@@ -334,7 +333,7 @@ export default function MaterialPage() {
             {/* Заглушки если нет контента */}
             {!material.theory_content && !material.video_url && !material.source_url && (
               <div className="bg-gray-100 rounded-lg p-8 text-center">
-                {material.content_type === 'video' && (
+                {material.content_type.toLowerCase() === 'video' && (
                   <>
                     <Play className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
@@ -342,7 +341,7 @@ export default function MaterialPage() {
                     </p>
                   </>
                 )}
-                {material.content_type === 'article' && (
+                {material.content_type.toLowerCase() === 'article' && (
                   <>
                     <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
@@ -350,7 +349,7 @@ export default function MaterialPage() {
                     </p>
                   </>
                 )}
-                {material.content_type === 'tutorial' && (
+                {material.content_type.toLowerCase() === 'tutorial' && (
                   <>
                     <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">

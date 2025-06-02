@@ -44,7 +44,7 @@ export default function DailyTasksPage() {
   const [completingTaskId, setCompletingTaskId] = useState<number | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const API_BASE = 'http://127.0.0.1:8000/api/v1'
+  const API_BASE = 'http://127.0.0.1:8002/api/v1'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('access_token')

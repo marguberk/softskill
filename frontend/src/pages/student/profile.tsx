@@ -46,7 +46,7 @@ export default function StudentProfile() {
   })
 
   const { user, setAuth } = useAuthStore()
-  const API_BASE = 'http://127.0.0.1:8000/api/v1'
+  const API_BASE = 'http://127.0.0.1:8002/api/v1'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('access_token')
@@ -245,7 +245,7 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8">
       {/* Заголовок */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -257,256 +257,259 @@ export default function StudentProfile() {
         </p>
       </div>
 
-      {/* Основная информация */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Основная информация
-            </CardTitle>
-            {!isEditing ? (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleEdit}
-              >
-                <Edit3 className="h-4 w-4 mr-2" />
-                Редактировать
-              </Button>
-            ) : (
-              <div className="flex gap-2">
+      {/* Контент в две колонки */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Основная информация */}
+        <Card className="h-fit">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Основная информация
+              </CardTitle>
+              {!isEditing ? (
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={handleCancel}
-                  disabled={isSavingProfile}
+                  onClick={handleEdit}
                 >
-                  <X className="h-4 w-4 mr-2" />
-                  Отмена
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Редактировать
                 </Button>
-                <Button 
-                  size="sm"
-                  onClick={handleSave}
-                  disabled={isSavingProfile}
-                >
-                  {isSavingProfile ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Сохранение...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Сохранить
-                    </>
-                  )}
-                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleCancel}
+                    disabled={isSavingProfile}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Отмена
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={isSavingProfile}
+                  >
+                    {isSavingProfile ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Сохранение...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Сохранить
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-6">
+              {/* Имя */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Полное имя
+                </label>
+                {isEditing ? (
+                  <Input
+                    value={editForm.full_name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                    placeholder="Введите ваше полное имя"
+                    disabled={isSavingProfile}
+                  />
+                ) : (
+                  <p className="text-lg">{profile.full_name || "Не указано"}</p>
+                )}
               </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-6">
-            {/* Имя */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Полное имя
-              </label>
-              {isEditing ? (
-                <Input
-                  value={editForm.full_name}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
-                  placeholder="Введите ваше полное имя"
-                  disabled={isSavingProfile}
-                />
+
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </label>
+                {isEditing ? (
+                  <Input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Введите email"
+                    disabled={isSavingProfile}
+                  />
+                ) : (
+                  <p className="text-lg">{profile.email}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Смена пароля */}
+        <Card className="h-fit">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Безопасность
+              </CardTitle>
+              {!isChangingPassword ? (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsChangingPassword(true)}
+                  disabled={isEditing}
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Изменить пароль
+                </Button>
               ) : (
-                <p className="text-lg">{profile.full_name || "Не указано"}</p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleCancelPasswordChange}
+                    disabled={isSavingPassword}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Отмена
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={handlePasswordChange}
+                    disabled={isSavingPassword}
+                  >
+                    {isSavingPassword ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Сохранение...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Сохранить
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
             </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </label>
-              {isEditing ? (
-                <Input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Введите email"
-                  disabled={isSavingProfile}
-                />
-              ) : (
-                <p className="text-lg">{profile.email}</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Смена пароля */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Безопасность
-            </CardTitle>
+          </CardHeader>
+          <CardContent>
             {!isChangingPassword ? (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setIsChangingPassword(true)}
-                disabled={isEditing}
-              >
-                <Lock className="h-4 w-4 mr-2" />
-                Изменить пароль
-              </Button>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium">Изменить пароль</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Обновите пароль для обеспечения безопасности аккаунта
+                  </p>
+                </div>
+              </div>
             ) : (
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleCancelPasswordChange}
-                  disabled={isSavingPassword}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Отмена
-                </Button>
-                <Button 
-                  size="sm"
-                  onClick={handlePasswordChange}
-                  disabled={isSavingPassword}
-                >
-                  {isSavingPassword ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Сохранение...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Сохранить
-                    </>
-                  )}
-                </Button>
+              <div className="space-y-4">
+                {/* Текущий пароль */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Текущий пароль
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPasswords.current ? "text" : "password"}
+                      value={passwordForm.current_password}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
+                      placeholder="Введите текущий пароль"
+                      disabled={isSavingPassword}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('current')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      disabled={isSavingPassword}
+                    >
+                      {showPasswords.current ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Новый пароль */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Новый пароль
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPasswords.new ? "text" : "password"}
+                      value={passwordForm.new_password}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
+                      placeholder="Введите новый пароль"
+                      disabled={isSavingPassword}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('new')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      disabled={isSavingPassword}
+                    >
+                      {showPasswords.new ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Подтверждение пароля */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Подтвердите новый пароль
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPasswords.confirm ? "text" : "password"}
+                      value={passwordForm.confirm_password}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
+                      placeholder="Повторите новый пароль"
+                      disabled={isSavingPassword}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('confirm')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      disabled={isSavingPassword}
+                    >
+                      {showPasswords.confirm ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Требования к паролю */}
+                <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
+                  <p className="font-medium mb-1">Требования к паролю:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Минимум 6 символов</li>
+                    <li>Должен отличаться от текущего пароля</li>
+                    <li>Рекомендуется использовать буквы, цифры и специальные символы</li>
+                  </ul>
+                </div>
               </div>
             )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!isChangingPassword ? (
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div>
-                <h4 className="font-medium">Изменить пароль</h4>
-                <p className="text-sm text-muted-foreground">
-                  Обновите пароль для обеспечения безопасности аккаунта
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Текущий пароль */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Текущий пароль
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPasswords.current ? "text" : "password"}
-                    value={passwordForm.current_password}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
-                    placeholder="Введите текущий пароль"
-                    disabled={isSavingPassword}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => togglePasswordVisibility('current')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    disabled={isSavingPassword}
-                  >
-                    {showPasswords.current ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Новый пароль */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Новый пароль
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPasswords.new ? "text" : "password"}
-                    value={passwordForm.new_password}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
-                    placeholder="Введите новый пароль"
-                    disabled={isSavingPassword}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => togglePasswordVisibility('new')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    disabled={isSavingPassword}
-                  >
-                    {showPasswords.new ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Подтверждение пароля */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Подтвердите новый пароль
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPasswords.confirm ? "text" : "password"}
-                    value={passwordForm.confirm_password}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
-                    placeholder="Повторите новый пароль"
-                    disabled={isSavingPassword}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => togglePasswordVisibility('confirm')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    disabled={isSavingPassword}
-                  >
-                    {showPasswords.confirm ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Требования к паролю */}
-              <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
-                <p className="font-medium mb-1">Требования к паролю:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Минимум 6 символов</li>
-                  <li>Должен отличаться от текущего пароля</li>
-                  <li>Рекомендуется использовать буквы, цифры и специальные символы</li>
-                </ul>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -96,7 +96,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex flex-1 flex-col h-full bg-card border-r">
           {/* Логотип */}
           <div className="flex h-16 items-center px-4">
-            <h1 className="text-2xl font-bold text-primary">MaroAI Admin</h1>
+            <h1 className="text-2xl font-bold text-primary">Soft Skill Admin</h1>
           </div>
 
           {/* Навигация */}

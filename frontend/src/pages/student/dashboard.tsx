@@ -49,7 +49,7 @@ export default function StudentDashboard() {
   const [isLoadingAssessment, setIsLoadingAssessment] = useState(true)
   const [isLoadingResults, setIsLoadingResults] = useState(false)
 
-  const API_BASE = 'http://127.0.0.1:8000/api/v1'
+  const API_BASE = 'http://127.0.0.1:8002/api/v1'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('access_token')

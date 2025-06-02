@@ -66,7 +66,7 @@ export default function MaterialsPage() {
         throw new Error('Не авторизован')
       }
 
-      const response = await fetch('http://localhost:8000/api/v1/admin/materials', {
+      const response = await fetch('http://localhost:8002/api/v1/admin/materials', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -159,7 +159,7 @@ export default function MaterialsPage() {
       const material = materials.find(m => m.id === id)
       if (!material) return
 
-      const response = await fetch(`http://localhost:8000/api/v1/admin/materials/${id}`, {
+      const response = await fetch(`http://localhost:8002/api/v1/admin/materials/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export default function MaterialsPage() {
         const token = localStorage.getItem('token')
         if (!token) return
 
-        const response = await fetch(`http://localhost:8000/api/v1/admin/materials/${id}`, {
+        const response = await fetch(`http://localhost:8002/api/v1/admin/materials/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`

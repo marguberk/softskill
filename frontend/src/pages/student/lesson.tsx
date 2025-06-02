@@ -201,7 +201,7 @@ export default function LessonPage() {
             {lesson.order_position}
           </div>
           <h1 className="text-3xl font-bold tracking-tight">{lesson.material.title}</h1>
-          {lesson.material.content_type === 'video' && (
+          {lesson.material.content_type.toLowerCase() === 'video' && (
             <Badge variant="outline">
               <Video className="h-3 w-3 mr-1" />
               Видео
@@ -234,8 +234,8 @@ export default function LessonPage() {
         </div>
       </div>
 
-      {/* Видео */}
-      {lesson.material.content_type === 'video' && lesson.material.video_url && (
+      {/* Видео плеер */}
+      {lesson.material.content_type.toLowerCase() === 'video' && lesson.material.video_url && (
         <Card>
           <CardContent className="p-0">
             <div className="aspect-video">
