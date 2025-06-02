@@ -1,318 +1,260 @@
-import { useEffect, useState } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
-import { Progress } from "../../components/ui/progress"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Badge } from "../../components/ui/badge"
-import {
-  Trophy,
-  CheckCircle,
+import { Button } from "../../components/ui/button"
+import { toast } from "sonner"
+import { 
+  Trophy, 
+  TrendingUp, 
+  Award, 
+  Zap, 
   Star,
-  TrendingUp,
   Target,
-  Zap,
-  Gift,
-  Award,
-  Crown,
-  Calendar
+  BookOpen,
+  CheckCircle
 } from "lucide-react"
 
-interface DailyTask {
-  id: number
-  title: string
-  description: string
-  task_type: string
-  difficulty: string
-  points: number
-  is_active: boolean
-  created_at: string
+interface ProgressData {
+  level: number
+  current_xp: number
+  xp_to_next_level: number
+  overall_progress: number
+  courses_completed: number
+  lessons_completed: number
+  perfect_scores: number
+  current_streak: number
+  longest_streak: number
 }
 
-interface UserLevel {
-  user_id: number
-  total_points: number
-  current_level: number
-  points_to_next_level: number
+interface DashboardData {
+  level: number
+  level_name: string
+  current_xp: number
+  next_level_xp: number
+  progress_percentage: number
+  total_courses: number
+  completed_courses: number
+  skills_summary: Array<{
+    name: string
+    score: number
+    level: string
+  }>
+  recent_achievements: string[]
 }
 
-interface TaskCompletion {
-  id: number
-  task_id: number
-  completed_at: string
-  points_earned: number
-  task: DailyTask
-}
-
-interface ProgressPageData {
-  user_level: UserLevel
-  recent_completions: TaskCompletion[]
-}
-
-export default function StudentProgress() {
-  const [pageData, setPageData] = useState<ProgressPageData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const API_BASE = 'http://127.0.0.1:8002/api/v1'
-
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token') || localStorage.getItem('access_token')
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }
-
-  const loadProgressData = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch(`${API_BASE}/tasks/daily`, {
-        headers: getAuthHeaders()
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setPageData({
-          user_level: data.user_level,
-          recent_completions: data.recent_completions
-        })
-      }
-    } catch (error) {
-      console.error('Ошибка при загрузке данных прогресса:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+export default function ProgressPage() {
+  const [progress, setProgress] = useState<ProgressData | null>(null)
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadProgressData()
   }, [])
 
-  // Расчет прогресса и очков для уровня
-  const getLevelData = () => {
-    if (!pageData) return { currentPoints: 0, totalPointsForLevel: 100, progressPercent: 0, pointsToNext: 100 }
-    
-    const currentLevel = pageData.user_level.current_level
-    const totalPoints = pageData.user_level.total_points
-    
-    // Вычисляем очки для текущего уровня
-    let pointsForCurrentLevel = 0
-    let pointsForNextLevel = 0
-    
-    if (currentLevel === 1) {
-      pointsForCurrentLevel = 0
-      pointsForNextLevel = 100
-    } else if (currentLevel === 2) {
-      pointsForCurrentLevel = 100
-      pointsForNextLevel = 250
-    } else if (currentLevel === 3) {
-      pointsForCurrentLevel = 250
-      pointsForNextLevel = 450
-    } else if (currentLevel === 4) {
-      pointsForCurrentLevel = 450
-      pointsForNextLevel = 700
-    } else {
-      pointsForCurrentLevel = 700 + (currentLevel - 5) * 300
-      pointsForNextLevel = 700 + (currentLevel - 4) * 300
-    }
-    
-    const pointsInCurrentLevel = totalPoints - pointsForCurrentLevel
-    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel
-    const progressPercent = Math.max(0, Math.min(100, (pointsInCurrentLevel / pointsNeededForLevel) * 100))
-    
-    const pointsToNextLevel = pointsNeededForLevel - pointsInCurrentLevel
-    
-    return {
-      currentPoints: pointsInCurrentLevel,
-      totalPointsForLevel: pointsNeededForLevel,
-      progressPercent,
-      pointsToNext: pointsToNextLevel
+  const loadProgressData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('Не авторизован')
+        return
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+
+      // Загружаем прогресс
+      const progressResponse = await fetch('http://localhost:8002/api/v1/gamification/progress', { headers })
+      if (!progressResponse.ok) {
+        throw new Error(`Ошибка загрузки прогресса: ${progressResponse.status}`)
+      }
+      const progressData = await progressResponse.json()
+      setProgress(progressData)
+
+      // Загружаем дашборд
+      const dashboardResponse = await fetch('http://localhost:8002/api/v1/gamification/dashboard', { headers })
+      if (!dashboardResponse.ok) {
+        throw new Error(`Ошибка загрузки дашборда: ${dashboardResponse.status}`)
+      }
+      const dashboardData = await dashboardResponse.json()
+      setDashboard(dashboardData)
+
+    } catch (error: any) {
+      console.error('Ошибка загрузки данных прогресса:', error)
+      setError(error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getTaskTypeIcon = (taskType: string) => {
-    switch (taskType) {
-      case 'communication': return <Star className="h-4 w-4" />
-      case 'leadership': return <Crown className="h-4 w-4" />
-      case 'teamwork': return <Target className="h-4 w-4" />
-      case 'problem_solving': return <Zap className="h-4 w-4" />
-      case 'time_management': return <Calendar className="h-4 w-4" />
-      case 'emotional_intelligence': return <Gift className="h-4 w-4" />
-      default: return <Star className="h-4 w-4" />
-    }
-  }
-
-  const getLevelTitle = (level: number) => {
-    if (level <= 2) return "Новичок"
-    if (level <= 4) return "Ученик"
-    if (level <= 6) return "Практик"
-    if (level <= 8) return "Эксперт"
-    if (level <= 10) return "Мастер"
-    return "Гуру"
-  }
-
-  const getLevelColor = (level: number) => {
-    if (level <= 2) return "text-gray-600"
-    if (level <= 4) return "text-blue-600"
-    if (level <= 6) return "text-green-600"
-    if (level <= 8) return "text-orange-600"
-    if (level <= 10) return "text-red-600"
-    return "text-purple-600"
-  }
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold tracking-tight">Мой прогресс</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
 
-  if (!pageData) {
+  if (error) {
     return (
-      <div className="text-center py-12">
-        <p>Не удалось загрузить данные о прогрессе</p>
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold tracking-tight">Мой прогресс</h2>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Ошибка загрузки</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={loadProgressData}>Попробовать снова</Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
-
-  const levelData = getLevelData()
 
   return (
-    <div className="space-y-8">
-      {/* Заголовок */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <Trophy className="h-8 w-8 text-primary" />
-          Мой прогресс
-        </h2>
-        <p className="text-muted-foreground">
-          Отслеживайте свой уровень, достижения и общий прогресс в изучении
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">🎮 Мой прогресс</h2>
+        <Button onClick={loadProgressData} variant="outline">
+          Обновить
+        </Button>
       </div>
 
-      {/* Уровень пользователя */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-full ${pageData.user_level.current_level <= 2 ? 'bg-gray-100' : 
-                pageData.user_level.current_level <= 4 ? 'bg-blue-100' :
-                pageData.user_level.current_level <= 6 ? 'bg-green-100' :
-                pageData.user_level.current_level <= 8 ? 'bg-orange-100' :
-                pageData.user_level.current_level <= 10 ? 'bg-red-100' : 'bg-purple-100'}`}>
-                <Crown className={`h-6 w-6 ${getLevelColor(pageData.user_level.current_level)}`} />
+      {/* Основная статистика */}
+      {dashboard && (
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Уровень</CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboard.level}</div>
+              <p className="text-xs text-muted-foreground">{dashboard.level_name}</p>
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${dashboard.progress_percentage}%` }}
+                />
               </div>
-              <div>
-                <h3 className="text-xl font-bold">
-                  Уровень {pageData.user_level.current_level}
-                </h3>
-                <p className={`text-sm font-medium ${getLevelColor(pageData.user_level.current_level)}`}>
-                  {getLevelTitle(pageData.user_level.current_level)}
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>XP: {levelData.currentPoints} / {levelData.totalPointsForLevel}</span>
-                <span className="text-muted-foreground">
-                  {Math.round(levelData.progressPercent)}%
-                </span>
-              </div>
-              <Progress value={levelData.progressPercent} className="h-3" />
-              <p className="text-sm text-muted-foreground">
-                Нужно еще {levelData.pointsToNext} очков для повышения уровня
+              <p className="text-xs text-muted-foreground mt-1">
+                {dashboard.current_xp} / {dashboard.next_level_xp} XP
               </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Общая статистика
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Всего очков</span>
-                <span className="font-semibold text-lg text-primary">
-                  {pageData.user_level.total_points}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Выполнено заданий</span>
-                <span className="font-semibold text-lg">
-                  {pageData.recent_completions.length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Текущий уровень</span>
-                <Badge variant="outline" className="font-semibold">
-                  {getLevelTitle(pageData.user_level.current_level)}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Опыт (XP)</CardTitle>
+              <Zap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboard.current_xp}</div>
+              <p className="text-xs text-muted-foreground">
+                До следующего уровня: {progress?.xp_to_next_level || 0} XP
+              </p>
+            </CardContent>
+          </Card>
 
-      {/* Недавние достижения */}
-      {pageData.recent_completions.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Курсы</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboard.completed_courses}</div>
+              <p className="text-xs text-muted-foreground">
+                из {dashboard.total_courses} курсов
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Детальная статистика */}
+      {progress && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Уроки</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{progress.lessons_completed}</div>
+              <p className="text-xs text-muted-foreground">завершено</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Выполнено заданий</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{progress.perfect_scores}</div>
+              <p className="text-xs text-muted-foreground">практических заданий</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Текущий стрик</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{progress.current_streak}</div>
+              <p className="text-xs text-muted-foreground">дней подряд</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Навыки */}
+      {dashboard && dashboard.skills_summary.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Недавние достижения
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Ваши последние выполненные задания и полученные очки
-            </p>
+            <CardTitle>Прогресс навыков</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {pageData.recent_completions.map((completion) => (
-                <div
-                  key={completion.id}
-                  className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-                >
+            <div className="space-y-4">
+              {dashboard.skills_summary.map((skill, index) => (
+                <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-full">
-                      {getTaskTypeIcon(completion.task.task_type)}
-                    </div>
+                    <CheckCircle className="h-5 w-5 text-green-500" />
                     <div>
-                      <p className="font-medium">{completion.task.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(completion.completed_at).toLocaleDateString('ru-RU', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </p>
+                      <p className="font-medium">{skill.name}</p>
+                      <p className="text-sm text-muted-foreground">{skill.level}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full hover:bg-green-100">
-                      +{completion.points_earned} очков
-                    </span>
+                    <p className="text-lg font-bold">{skill.score}%</p>
+                    <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${skill.score}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Пустое состояние для достижений */}
-      {pageData.recent_completions.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Пока нет достижений</h3>
-            <p className="text-muted-foreground">
-              Начните выполнять задания, чтобы получить первые достижения!
-            </p>
           </CardContent>
         </Card>
       )}

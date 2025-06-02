@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
+import { toast } from "sonner"
 import {
   ChevronRight,
   CheckCircle,
@@ -149,18 +150,60 @@ export default function CoursePage() {
     return lessonsData.lessons.every(lesson => isLessonCompleted(lesson.lesson_id))
   }
 
-  const handleGetCertificate = () => {
+  const handleGetCertificate = async () => {
     if (!course || !courseId) return
     
     // Получаем имя пользователя из профиля
     const studentName = user?.full_name || 'Student'
     
     if (!studentName || studentName === 'Student') {
-      alert('Пожалуйста, заполните ваше полное имя в профиле для получения сертификата')
+      toast.error('Пожалуйста, заполните ваше полное имя в профиле для получения сертификата')
       navigate('/profile')
       return
     }
     
+    // Вызываем API геймификации для завершения курса
+    try {
+      const token = localStorage.getItem('token')
+      if (token) {
+        const response = await fetch(`http://localhost:8002/api/v1/gamification/complete-course/${courseId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Результат завершения курса:', result)
+          
+          // Показываем подробное уведомление
+          if (result.xp_result && result.skill_result) {
+            const message = `🎉 Курс завершен!\n\n` +
+              `💰 Получено XP: ${result.xp_result.xp_gained}\n` +
+              `📊 Общий XP: ${result.xp_result.total_xp}\n` +
+              `⬆️ Уровень: ${result.xp_result.new_level}${result.xp_result.level_up ? ' (ПОВЫШЕНИЕ!)' : ''}\n\n` +
+              `🎯 Навык "${result.skill_result.skill_name}":\n` +
+              `   ${result.skill_result.old_score}% → ${result.skill_result.new_score}%\n` +
+              `   ${result.skill_result.old_level} → ${result.skill_result.new_level}${result.skill_result.level_up ? ' (УЛУЧШЕНИЕ!)' : ''}\n\n` +
+              `🏆 Достижения: ${result.achievements.length > 0 ? result.achievements.join(', ') : 'Нет новых'}`
+            
+            toast.success(message)
+          }
+        } else {
+          // Если курс уже завершен, это нормально, просто генерируем сертификат
+          const errorData = await response.json()
+          if (!errorData.detail?.includes('уже завершен')) {
+            console.error('Ошибка завершения курса:', errorData)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при завершении курса:', error)
+    }
+    
+    // Генерируем сертификат
     generateCertificate({
       studentName,
       courseName: course.title,

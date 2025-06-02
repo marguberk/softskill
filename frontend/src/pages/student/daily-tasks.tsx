@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Button } from "../../components/ui/button"
+import { toast } from "sonner"
 import {
   Trophy,
   CheckCircle,
@@ -42,7 +43,6 @@ export default function DailyTasksPage() {
   const [pageData, setPageData] = useState<DailyTasksPageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [completingTaskId, setCompletingTaskId] = useState<number | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const API_BASE = 'http://127.0.0.1:8002/api/v1'
 
@@ -85,16 +85,27 @@ export default function DailyTasksPage() {
       
       if (response.ok) {
         const result = await response.json()
-        setSuccessMessage(result.message)
+        
+        // Используем toast уведомления вместо setSuccessMessage
+        if (result.success) {
+          toast.success(result.message)
+          
+          // Если был level up, показываем дополнительное уведомление
+          if (result.new_level) {
+            toast.success(`🎉 Повышение уровня! Теперь вы ${result.new_level} уровня!`)
+          }
+        } else {
+          toast.error(result.message)
+        }
         
         // Перезагружаем данные
         await loadPageData()
-        
-        // Убираем сообщение через 3 секунды
-        setTimeout(() => setSuccessMessage(null), 3000)
+      } else {
+        toast.error('Ошибка при выполнении задания')
       }
     } catch (error) {
       console.error('Ошибка при завершении задания:', error)
+      toast.error('Ошибка при выполнении задания')
     } finally {
       setCompletingTaskId(null)
     }
@@ -169,16 +180,6 @@ export default function DailyTasksPage() {
           Выполняйте задания для развития гибких навыков и получения очков
         </p>
       </div>
-
-      {/* Уведомление о выполнении */}
-      {successMessage && (
-        <Alert className="bg-green-50 border-green-200">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            {successMessage}
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Карточки заданий напрямую */}
       <div className="space-y-3">

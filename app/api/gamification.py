@@ -83,6 +83,34 @@ async def complete_lesson(
     )
 
 
+@router.post("/complete-task/{task_id}", response_model=dict)
+async def complete_task(
+    task_id: int,
+    score: float = 100,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Отмечает задание как завершенное и начисляет XP"""
+    service = GamificationService(db)
+    
+    try:
+        # Начисляем XP за выполнение задания (5 XP за задание)
+        xp_result = service.complete_task(current_user.id, task_id, score)
+        
+        return {
+            "task_id": task_id,
+            "xp_gained": xp_result.xp_gained,
+            "new_level": xp_result.new_level,
+            "level_up": xp_result.level_up,
+            "message": f"🎯 Задание выполнено! Получено {xp_result.xp_gained} XP!"
+        }
+        
+    except ValueError as e:
+        if "already completed" in str(e):
+            raise HTTPException(status_code=400, detail="Задание уже выполнено")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.get("/progress", response_model=ProgressSummary)
 async def get_progress_summary(
     current_user: User = Depends(get_current_user),

@@ -11,7 +11,8 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle,
-  Star
+  Star,
+  Trophy
 } from "lucide-react"
 import { useAuthStore } from "../../stores/auth"
 import { Button } from "../../components/ui/button"
@@ -41,15 +42,24 @@ interface AssessmentResult {
   completion_message: string
 }
 
+interface GamificationData {
+  level: number
+  level_name: string
+  current_xp: number
+  next_level_xp: number
+  progress_percentage: number
+}
+
 export default function StudentDashboard() {
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
   const [assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus | null>(null)
   const [assessmentResults, setAssessmentResults] = useState<AssessmentResult | null>(null)
+  const [gamificationData, setGamificationData] = useState<GamificationData | null>(null)
   const [isLoadingAssessment, setIsLoadingAssessment] = useState(true)
   const [isLoadingResults, setIsLoadingResults] = useState(false)
 
-  const API_BASE = 'http://127.0.0.1:8002/api/v1'
+  const API_BASE = 'http://localhost:8002/api/v1'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('access_token')
@@ -141,8 +151,24 @@ export default function StudentDashboard() {
     }
   }
 
+  const loadGamificationData = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/gamification/dashboard`, {
+        headers: getAuthHeaders()
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setGamificationData(data)
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке данных геймификации:', error)
+    }
+  }
+
   useEffect(() => {
     checkAssessmentStatus()
+    loadGamificationData()
   }, [])
 
   const getOverallLevel = (score: number) => {
@@ -193,13 +219,13 @@ export default function StudentDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="p-6">
           <div className="flex items-center gap-4">
-                <Award className="h-8 w-8 text-primary" />
+            <Trophy className="h-8 w-8 text-primary" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                    Общий прогресс
+                Уровень
               </p>
               <h3 className="text-2xl font-bold tracking-tight mt-1">
-                    {assessmentResults.total_score}%
+                {gamificationData ? gamificationData.level : '-'}
               </h3>
             </div>
           </div>

@@ -25,10 +25,12 @@ class GamificationService:
         # Настройки начисления XP
         self.XP_REWARDS = {
             "lesson_complete": 10,
-            "course_complete": 50,
+            "course_complete": 100,
             "perfect_score": 15,
-            "first_course": 25,
-            "streak_bonus": 5
+            "first_course": 50,
+            "streak_bonus": 5,
+            "task_complete": 5,  # XP за выполнение задания
+            "daily_task_complete": 15  # XP за ежедневное задание
         }
         
         # Настройки уровней (XP требуемый для каждого уровня)
@@ -105,6 +107,76 @@ class GamificationService:
             new_level=profile.level,
             level_up=level_up,
             reason="lesson_complete"
+        )
+
+    def complete_task(self, user_id: int, task_id: int, score: float = 100) -> XPGainResult:
+        """Обрабатывает завершение задания и начисляет XP"""
+        profile = self.get_or_create_game_profile(user_id)
+        
+        # Проверяем, не выполнял ли пользователь уже это задание
+        # Для простоты сейчас используем localStorage на фронтенде для отслеживания
+        # В будущем можно создать отдельную таблицу для заданий
+        
+        # Базовый XP за задание
+        xp_gained = self.XP_REWARDS["task_complete"]
+        
+        # Бонус за отличную оценку
+        if score >= 95:
+            xp_gained += 2  # Дополнительные 2 XP за отличное выполнение
+        
+        # Начисляем XP
+        old_level = profile.level
+        profile.experience_points += xp_gained
+        
+        # Проверяем повышение уровня
+        new_level = self.calculate_level(profile.experience_points)
+        level_up = False
+        
+        if new_level > old_level:
+            profile.level = new_level
+            level_up = True
+        
+        profile.last_action = datetime.utcnow()
+        self.db.commit()
+        
+        return XPGainResult(
+            xp_gained=xp_gained,
+            total_xp=profile.experience_points,
+            old_level=old_level,
+            new_level=profile.level,
+            level_up=level_up,
+            reason="task_complete"
+        )
+
+    def complete_daily_task(self, user_id: int, task_id: int, task_points: int = 15) -> XPGainResult:
+        """Обрабатывает завершение ежедневного задания и начисляет XP"""
+        profile = self.get_or_create_game_profile(user_id)
+        
+        # Используем настройки или переданные очки задания
+        xp_gained = task_points if task_points else self.XP_REWARDS["daily_task_complete"]
+        
+        # Начисляем XP
+        old_level = profile.level
+        profile.experience_points += xp_gained
+        
+        # Проверяем повышение уровня
+        new_level = self.calculate_level(profile.experience_points)
+        level_up = False
+        
+        if new_level > old_level:
+            profile.level = new_level
+            level_up = True
+        
+        profile.last_action = datetime.utcnow()
+        self.db.commit()
+        
+        return XPGainResult(
+            xp_gained=xp_gained,
+            total_xp=profile.experience_points,
+            old_level=old_level,
+            new_level=profile.level,
+            level_up=level_up,
+            reason="daily_task_complete"
         )
 
     def complete_course(self, user_id: int, course_id: int) -> Tuple[XPGainResult, SkillProgressResult]:
@@ -260,14 +332,8 @@ class GamificationService:
 
     def calculate_skill_improvement(self, current_score: int, courses_completed: int) -> int:
         """Рассчитывает улучшение навыка за курс"""
-        if current_score < 30:
-            return 15  # Быстрый рост для новичков
-        elif current_score < 60:
-            return 12  # Средний рост
-        elif current_score < 80:
-            return 8   # Замедленный рост
-        else:
-            return 5   # Медленный рост для экспертов
+        # Единое улучшение для всех курсов - 20 баллов
+        return 20
 
     def determine_skill_level_by_score(self, score: int) -> SkillLevel:
         """Определяет уровень навыка по баллам"""

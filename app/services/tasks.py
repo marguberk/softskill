@@ -7,6 +7,7 @@ import random
 from app.models.tasks import DailyTask, TaskCompletion, UserDailyTaskAssignment, UserLevel, TaskType, TaskDifficulty
 from app.models.user import User
 from app.schemas.tasks import DailyTasksPageResponse, UserLevelResponse, CompleteTaskResponse
+from app.services.gamification import GamificationService
 
 
 class TasksService:
@@ -171,37 +172,63 @@ class TasksService:
         )
         self.db.add(completion)
         
-        # Обновляем уровень пользователя
-        user_level = self.get_or_create_user_level(user_id)
-        old_level = user_level.current_level
-        user_level.total_points += task.points
+        # Используем систему геймификации для начисления XP
+        gamification_service = GamificationService(self.db)
         
-        # Проверяем повышение уровня
-        new_level = self._calculate_level(user_level.total_points)
-        level_up = new_level > old_level
-        
-        if level_up:
-            user_level.current_level = new_level
-        
-        # Обновляем очки до следующего уровня
-        points_for_next_level = self._points_for_next_level(user_level.current_level)
-        user_level.points_to_next_level = max(0, points_for_next_level - user_level.total_points)
-        
-        self.db.commit()
-        
-        # Проверяем, нужно ли назначить новое задание
-        self._assign_new_task_if_needed(user_id)
-        
-        message = f"Поздравляем! Вы получили {task.points} очков!"
-        if level_up:
-            message += f" Вы достигли {new_level} уровня!"
-        
-        return CompleteTaskResponse(
-            success=True,
-            points_earned=task.points,
-            new_level=new_level if level_up else None,
-            message=message
-        )
+        # Добавляем новый метод для ежедневных заданий в GamificationService
+        try:
+            xp_result = gamification_service.complete_daily_task(user_id, task_id, task.points)
+            
+            self.db.commit()
+            
+            # Проверяем, нужно ли назначить новое задание
+            self._assign_new_task_if_needed(user_id)
+            
+            message = f"🎉 Задание выполнено! Получено {xp_result.xp_gained} XP!"
+            if xp_result.level_up:
+                message += f" Вы достигли {xp_result.new_level} уровня!"
+            
+            return CompleteTaskResponse(
+                success=True,
+                points_earned=xp_result.xp_gained,
+                new_level=xp_result.new_level if xp_result.level_up else None,
+                message=message
+            )
+        except Exception as e:
+            # Если возникла ошибка с геймификацией, используем старую систему как fallback
+            print(f"Ошибка геймификации: {e}")
+            
+            # Обновляем уровень пользователя (старая система)
+            user_level = self.get_or_create_user_level(user_id)
+            old_level = user_level.current_level
+            user_level.total_points += task.points
+            
+            # Проверяем повышение уровня
+            new_level = self._calculate_level(user_level.total_points)
+            level_up = new_level > old_level
+            
+            if level_up:
+                user_level.current_level = new_level
+            
+            # Обновляем очки до следующего уровня
+            points_for_next_level = self._points_for_next_level(user_level.current_level)
+            user_level.points_to_next_level = max(0, points_for_next_level - user_level.total_points)
+            
+            self.db.commit()
+            
+            # Проверяем, нужно ли назначить новое задание
+            self._assign_new_task_if_needed(user_id)
+            
+            message = f"Поздравляем! Вы получили {task.points} очков!"
+            if level_up:
+                message += f" Вы достигли {new_level} уровня!"
+            
+            return CompleteTaskResponse(
+                success=True,
+                points_earned=task.points,
+                new_level=new_level if level_up else None,
+                message=message
+            )
 
     def _assign_new_task_if_needed(self, user_id: int) -> None:
         """Назначить новое задание после выполнения предыдущего"""

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
 import { Separator } from "../../components/ui/separator"
+import { toast } from "sonner"
 import {
   ChevronLeft,
   ChevronRight,
@@ -66,11 +67,26 @@ export default function LessonPage() {
 
   useEffect(() => {
     if (courseId && lessonId) {
-      loadLesson(parseInt(courseId), parseInt(lessonId))
-      // Загружаем состояние завершения урока из localStorage
+      loadLesson(Number(courseId), Number(lessonId))
+      
+      // Проверяем, завершен ли урок
       const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
       const lessonKey = `${courseId}-${lessonId}`
-      setIsLessonCompleted(completedLessons[lessonKey] || false)
+      setIsLessonCompleted(!!completedLessons[lessonKey])
+      
+      // Загружаем состояние выполненных заданий
+      const completedTasksXP = JSON.parse(localStorage.getItem('completedTasksXP') || '{}')
+      const completedTasksForThisLesson = new Set<number>()
+      
+      // Находим все задания этого урока, которые уже выполнены
+      Object.keys(completedTasksXP).forEach(key => {
+        if (key.startsWith(`${courseId}-${lessonId}-`)) {
+          const taskId = parseInt(key.split('-')[2])
+          completedTasksForThisLesson.add(taskId)
+        }
+      })
+      
+      setCompletedTasks(completedTasksForThisLesson)
     }
   }, [courseId, lessonId])
 
@@ -92,26 +108,78 @@ export default function LessonPage() {
     }
   }
 
-  const toggleTaskCompletion = (taskId: number) => {
+  const toggleTaskCompletion = async (taskId: number) => {
     setCompletedTasks(prev => {
       const newSet = new Set(prev)
-      if (newSet.has(taskId)) {
+      const wasCompleted = newSet.has(taskId)
+      
+      if (wasCompleted) {
         newSet.delete(taskId)
       } else {
         newSet.add(taskId)
+        
+        // Если задание только что выполнено, вызываем API для начисления XP
+        if (!wasCompleted) {
+          handleTaskComplete(taskId)
+        }
       }
       return newSet
     })
   }
 
-  const completeLesson = () => {
-    if (!courseId || !lessonId) return
+  const handleTaskComplete = async (taskId: number) => {
+    try {
+      // Проверяем, не получали ли уже XP за это задание
+      const completedTasksXP = JSON.parse(localStorage.getItem('completedTasksXP') || '{}')
+      const taskKey = `${courseId}-${lessonId}-${taskId}`
+      
+      if (completedTasksXP[taskKey]) {
+        console.log('XP за это задание уже получен')
+        return
+      }
+
+      const token = localStorage.getItem('token')
+      if (token) {
+        const response = await fetch(`http://localhost:8002/api/v1/gamification/complete-task/${taskId}?score=100`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Получено XP за задание:', result)
+          
+          // Сохраняем, что за это задание уже получен XP
+          completedTasksXP[taskKey] = true
+          localStorage.setItem('completedTasksXP', JSON.stringify(completedTasksXP))
+          
+          // Показываем уведомление о получении XP
+          if (result.xp_gained > 0) {
+            toast.success(`🎯 Задание выполнено! +${result.xp_gained} XP`)
+            
+            // Если был level up, показываем дополнительное уведомление
+            if (result.level_up) {
+              toast.success(`🎉 Повышение уровня! Теперь вы ${result.new_level} уровня!`)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при начислении XP за задание:', error)
+    }
+  }
+
+  const completeLesson = async () => {
+    if (!lesson || !courseId || !lessonId) return
 
     // Проверяем, что все задания выполнены
     if (lesson && lesson.tasks.length > 0) {
       const allTasksCompleted = lesson.tasks.every(task => completedTasks.has(task.id))
       if (!allTasksCompleted) {
-        alert('Для завершения урока необходимо выполнить все практические задания!')
+        toast.error('Для завершения урока необходимо выполнить все практические задания!')
         return
       }
     }
@@ -123,6 +191,32 @@ export default function LessonPage() {
     localStorage.setItem('completedLessons', JSON.stringify(completedLessons))
     
     setIsLessonCompleted(true)
+
+    // Вызываем API геймификации для начисления XP за урок
+    try {
+      const token = localStorage.getItem('token')
+      if (token) {
+        const response = await fetch(`http://localhost:8002/api/v1/gamification/complete-lesson/${lesson.material.id}?score=95`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Получено XP за урок:', result)
+          
+          // Показываем уведомление о получении XP
+          if (result.xp_result && result.xp_result.xp_gained > 0) {
+            toast.success(`🎉 Урок завершен! Получено ${result.xp_result.xp_gained} XP!`)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при начислении XP:', error)
+    }
 
     // Переходим к следующему уроку или курсу
     if (lesson?.navigation.next_lesson) {
