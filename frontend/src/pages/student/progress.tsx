@@ -48,6 +48,16 @@ export default function ProgressPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const getSkillLevelRussian = (level: string) => {
+    const translations: { [key: string]: string } = {
+      "beginner": "начальный",
+      "intermediate": "средний",
+      "advanced": "продвинутый", 
+      "expert": "эксперт"
+    }
+    return translations[level.toLowerCase()] || level
+  }
+
   useEffect(() => {
     loadProgressData()
   }, [])
@@ -129,24 +139,24 @@ export default function ProgressPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">🎮 Мой прогресс</h2>
-        <Button onClick={loadProgressData} variant="outline">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">🎮 Мой прогресс</h2>
+        <Button onClick={loadProgressData} variant="outline" size="sm" className="w-full sm:w-auto">
           Обновить
         </Button>
       </div>
 
       {/* Основная статистика */}
       {dashboard && (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
               <CardTitle className="text-sm font-medium">Уровень</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboard.level}</div>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{dashboard.level}</div>
               <p className="text-xs text-muted-foreground">{dashboard.level_name}</p>
               <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                 <div 
@@ -161,25 +171,25 @@ export default function ProgressPage() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
               <CardTitle className="text-sm font-medium">Опыт (XP)</CardTitle>
               <Zap className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboard.current_xp}</div>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{dashboard.current_xp}</div>
               <p className="text-xs text-muted-foreground">
                 До следующего уровня: {progress?.xp_to_next_level || 0} XP
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="sm:col-span-2 lg:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
               <CardTitle className="text-sm font-medium">Курсы</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboard.completed_courses}</div>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{dashboard.completed_courses}</div>
               <p className="text-xs text-muted-foreground">
                 из {dashboard.total_courses} курсов
               </p>
@@ -240,7 +250,7 @@ export default function ProgressPage() {
                     <CheckCircle className="h-5 w-5 text-green-500" />
                     <div>
                       <p className="font-medium">{skill.name}</p>
-                      <p className="text-sm text-muted-foreground">{skill.level}</p>
+                      <p className="text-sm text-muted-foreground">{getSkillLevelRussian(skill.level)}</p>
                     </div>
                   </div>
                   <div className="text-right">

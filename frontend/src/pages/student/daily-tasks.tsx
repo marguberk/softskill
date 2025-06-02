@@ -124,7 +124,7 @@ export default function DailyTasksPage() {
       case 'сложное':
         return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 hover:bg-red-100">Сложное</span>
       default:
-        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-100">Неизвестно</span>
+        return null
     }
   }
 
@@ -169,83 +169,107 @@ export default function DailyTasksPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Заголовок */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-primary" />
+      <div className="space-y-2">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
+          <Calendar className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           Задания
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm md:text-base">
           Выполняйте задания для развития гибких навыков и получения очков
         </p>
       </div>
 
       {/* Карточки заданий напрямую */}
-      <div className="space-y-3">
+      <div className="space-y-3 md:space-y-4">
         {pageData.today_tasks.length > 0 ? (
-          pageData.today_tasks.map((assignment) => (
-            <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      {getTaskTypeIcon(assignment.task.task_type)}
-                      <span className="text-sm text-muted-foreground">
-                        {getTaskTypeLabel(assignment.task.task_type)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-primary">
-                        +{assignment.task.points} очков
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-semibold text-lg mb-1">{assignment.task.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {assignment.task.description}
-                    </p>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    {assignment.is_completed ? (
-                      <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg font-medium">
-                        <CheckCircle className="h-4 w-4" />
-                        Выполнено
+          pageData.today_tasks
+            .sort((a, b) => {
+              // Сначала показываем незавершенные задания
+              if (!a.is_completed && b.is_completed) return -1
+              if (a.is_completed && !b.is_completed) return 1
+              // Затем сортируем по дате назначения (новые сверху)
+              return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime()
+            })
+            .map((assignment) => (
+              <Card key={assignment.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4 md:p-6">
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                      <div className="flex items-center gap-2">
+                        {getTaskTypeIcon(assignment.task.task_type)}
+                        <span className="text-xs md:text-sm text-muted-foreground">
+                          {getTaskTypeLabel(assignment.task.task_type)}
+                        </span>
                       </div>
-                    ) : (
-                      <Button
-                        onClick={() => completeTask(assignment.task_id)}
-                        disabled={completingTaskId === assignment.task_id}
-                        className="min-w-[160px]"
-                      >
-                        {completingTaskId === assignment.task_id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Отмечается...
-                          </>
+                      <div className="flex items-center gap-2 justify-between sm:justify-end">
+                        <span className="text-sm font-medium text-primary">
+                          +{assignment.task.points} очков
+                        </span>
+                        {(() => {
+                          const difficultyBadge = getDifficultyBadge(assignment.task.difficulty)
+                          return difficultyBadge ? difficultyBadge : null
+                        })()}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-lg md:text-xl font-semibold leading-tight">
+                        {assignment.task.title}
+                      </h3>
+                      <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+                        {assignment.task.description}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+                      <div className="text-xs md:text-sm text-muted-foreground">
+                        {assignment.is_completed ? (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>Выполнено {assignment.completed_at ? new Date(assignment.completed_at).toLocaleDateString() : ''}</span>
+                          </div>
                         ) : (
-                          <>
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Отметить выполненным
-                          </>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Назначено {new Date(assignment.assigned_date).toLocaleDateString()}</span>
+                          </div>
                         )}
-                      </Button>
-                    )}
+                      </div>
+
+                      {!assignment.is_completed && (
+                        <Button
+                          onClick={() => completeTask(assignment.task_id)}
+                          disabled={completingTaskId === assignment.task_id}
+                          className="w-full sm:w-auto"
+                          size="sm"
+                        >
+                          {completingTaskId === assignment.task_id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Выполняется...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Выполнить
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            ))
         ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Заданий пока нет</h3>
-              <p className="text-muted-foreground">
-                Новые задания появятся скоро
+          <Card className="text-center py-8 md:py-12">
+            <CardContent className="p-4 md:p-6">
+              <Calendar className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg md:text-xl font-semibold mb-2">На сегодня заданий нет</h3>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Новые задания будут назначены завтра
               </p>
             </CardContent>
           </Card>
@@ -253,4 +277,4 @@ export default function DailyTasksPage() {
       </div>
     </div>
   )
-} 
+}

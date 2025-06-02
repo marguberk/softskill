@@ -223,20 +223,20 @@ export default function StudentProfile() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-96 p-4">
+        <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <p>Не удалось загрузить данные профиля</p>
+      <div className="text-center py-8 md:py-12 p-4">
+        <p className="mb-4 text-sm md:text-base">Не удалось загрузить данные профиля</p>
         <Button 
           variant="outline" 
           onClick={loadProfile}
-          className="mt-4"
+          className="mt-4 w-full sm:w-auto"
         >
           Попробовать снова
         </Button>
@@ -245,26 +245,26 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Заголовок */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <User className="h-8 w-8 text-primary" />
+      <div className="space-y-2">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
+          <User className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           Мой профиль
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm md:text-base">
           Управляйте информацией своего аккаунта
         </p>
       </div>
 
-      {/* Контент в две колонки */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Контент в одну колонку на мобильных, две на десктопе */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Основная информация */}
         <Card className="h-fit">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
+          <CardHeader className="pb-3 p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <User className="h-4 w-4 md:h-5 md:w-5" />
                 Основная информация
               </CardTitle>
               {!isEditing ? (
@@ -272,17 +272,19 @@ export default function StudentProfile() {
                   variant="outline" 
                   size="sm"
                   onClick={handleEdit}
+                  className="w-full sm:w-auto"
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
                   Редактировать
                 </Button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={handleCancel}
                     disabled={isSavingProfile}
+                    className="w-full sm:w-auto"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Отмена
@@ -291,6 +293,7 @@ export default function StudentProfile() {
                     size="sm"
                     onClick={handleSave}
                     disabled={isSavingProfile}
+                    className="w-full sm:w-auto"
                   >
                     {isSavingProfile ? (
                       <>
@@ -308,12 +311,12 @@ export default function StudentProfile() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-6">
+          <CardContent className="pt-0 p-4 md:p-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Имя */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
-                  <User className="h-4 w-4" />
+                  <User className="h-3 w-3 md:h-4 md:w-4" />
                   Полное имя
                 </label>
                 {isEditing ? (
@@ -322,16 +325,17 @@ export default function StudentProfile() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
                     placeholder="Введите ваше полное имя"
                     disabled={isSavingProfile}
+                    className="text-sm md:text-base"
                   />
                 ) : (
-                  <p className="text-lg">{profile.full_name || "Не указано"}</p>
+                  <p className="text-base md:text-lg break-words">{profile.full_name || "Не указано"}</p>
                 )}
               </div>
 
               {/* Email */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                  <Mail className="h-3 w-3 md:h-4 md:w-4" />
                   Email
                 </label>
                 {isEditing ? (
@@ -341,9 +345,10 @@ export default function StudentProfile() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="Введите email"
                     disabled={isSavingProfile}
+                    className="text-sm md:text-base"
                   />
                 ) : (
-                  <p className="text-lg">{profile.email}</p>
+                  <p className="text-base md:text-lg break-words">{profile.email}</p>
                 )}
               </div>
             </div>
@@ -352,10 +357,10 @@ export default function StudentProfile() {
 
         {/* Смена пароля */}
         <Card className="h-fit">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <Lock className="h-4 w-4 md:h-5 md:w-5" />
                 Безопасность
               </CardTitle>
               {!isChangingPassword ? (
@@ -364,17 +369,19 @@ export default function StudentProfile() {
                   size="sm"
                   onClick={() => setIsChangingPassword(true)}
                   disabled={isEditing}
+                  className="w-full sm:w-auto"
                 >
                   <Lock className="h-4 w-4 mr-2" />
                   Изменить пароль
                 </Button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={handleCancelPasswordChange}
                     disabled={isSavingPassword}
+                    className="w-full sm:w-auto"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Отмена
@@ -383,6 +390,7 @@ export default function StudentProfile() {
                     size="sm"
                     onClick={handlePasswordChange}
                     disabled={isSavingPassword}
+                    className="w-full sm:w-auto"
                   >
                     {isSavingPassword ? (
                       <>
@@ -400,18 +408,18 @@ export default function StudentProfile() {
               )}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 md:p-6 pt-0">
             {!isChangingPassword ? (
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">Изменить пароль</h4>
-                  <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 md:p-4 border rounded-lg gap-3">
+                <div className="min-w-0">
+                  <h4 className="font-medium text-sm md:text-base">Изменить пароль</h4>
+                  <p className="text-xs md:text-sm text-muted-foreground break-words">
                     Обновите пароль для обеспечения безопасности аккаунта
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {/* Текущий пароль */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
@@ -424,11 +432,12 @@ export default function StudentProfile() {
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
                       placeholder="Введите текущий пароль"
                       disabled={isSavingPassword}
+                      className="text-sm md:text-base pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => togglePasswordVisibility('current')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 min-w-[24px] min-h-[24px] flex items-center justify-center"
                       disabled={isSavingPassword}
                     >
                       {showPasswords.current ? (
@@ -452,11 +461,12 @@ export default function StudentProfile() {
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
                       placeholder="Введите новый пароль"
                       disabled={isSavingPassword}
+                      className="text-sm md:text-base pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => togglePasswordVisibility('new')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 min-w-[24px] min-h-[24px] flex items-center justify-center"
                       disabled={isSavingPassword}
                     >
                       {showPasswords.new ? (
@@ -480,11 +490,12 @@ export default function StudentProfile() {
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
                       placeholder="Повторите новый пароль"
                       disabled={isSavingPassword}
+                      className="text-sm md:text-base pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => togglePasswordVisibility('confirm')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 min-w-[24px] min-h-[24px] flex items-center justify-center"
                       disabled={isSavingPassword}
                     >
                       {showPasswords.confirm ? (
@@ -512,4 +523,3 @@ export default function StudentProfile() {
       </div>
     </div>
   )
-}

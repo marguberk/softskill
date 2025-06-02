@@ -92,3 +92,65 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Мобильные улучшения */
+@media (max-width: 768px) {
+  /* Улучшенное touch взаимодействие */
+  button, .cursor-pointer {
+    min-height: 24px;
+    min-width: 24px;
+  }
+  
+  /* Плавные переходы для мобильных меню */
+  .mobile-menu-transition {
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  /* Скрытие горизонтального скролла */
+  body.menu-open {
+    overflow: hidden;
+    touch-action: none;
+  }
+  
+  /* Адаптивные отступы для карточек */
+  .card-mobile {
+    padding: 1rem;
+  }
+  
+  /* Компактные бейджи на мобильных */
+  .badge-mobile {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Адаптивные размеры шрифтов */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Улучшения для Safari iOS */
+@supports (-webkit-touch-callout: none) {
+  .ios-scroll-fix {
+    -webkit-overflow-scrolling: touch;
+  }
+}

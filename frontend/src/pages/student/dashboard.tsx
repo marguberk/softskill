@@ -179,13 +179,13 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Приветствие */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">
+      <div className="space-y-2">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
           Добро пожаловать, {user?.full_name}!
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm md:text-base">
           Ваш прогресс в развитии гибких навыков
         </p>
       </div>
@@ -194,18 +194,19 @@ export default function StudentDashboard() {
       {!isLoadingAssessment && assessmentStatus?.needs_assessment && (
         <Alert className="skills-notification">
           <Brain className="h-4 w-4 text-primary" />
-          <AlertDescription className="flex items-center justify-between">
-            <div>
-              <p className="font-medium skills-notification-text mb-1">
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="space-y-1">
+              <p className="font-medium skills-notification-text">
                 Пройдите тест на гибкие навыки
               </p>
-              <p className="skills-notification-text">
+              <p className="skills-notification-text text-sm">
                 {assessmentStatus.message}
               </p>
             </div>
             <Button 
               onClick={() => navigate('/skills-assessment')}
-              className="ml-4 skills-notification-button text-white hover:skills-notification-button/90"
+              className="skills-notification-button text-white hover:skills-notification-button/90 w-full sm:w-auto"
+              size="sm"
             >
               Пройти тест
             </Button>
@@ -216,58 +217,58 @@ export default function StudentDashboard() {
       {/* Статистика общих результатов */}
       {assessmentResults && (
         <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <Trophy className="h-8 w-8 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center gap-3 md:gap-4">
+            <Trophy className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Уровень
               </p>
-              <h3 className="text-2xl font-bold tracking-tight mt-1">
+              <h3 className="text-xl md:text-2xl font-bold tracking-tight mt-1 truncate">
                 {gamificationData ? gamificationData.level : '-'}
               </h3>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-                <Target className="h-8 w-8 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                    Ваш уровень
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center gap-3 md:gap-4">
+            <Target className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
+                Ваш уровень
               </p>
-                  <h3 className={`text-2xl font-bold tracking-tight mt-1 ${getOverallLevel(assessmentResults.total_score).color}`}>
-                    {getOverallLevel(assessmentResults.total_score).level}
+              <h3 className={`text-xl md:text-2xl font-bold tracking-tight mt-1 truncate ${getOverallLevel(assessmentResults.total_score).color}`}>
+                {getOverallLevel(assessmentResults.total_score).level}
               </h3>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-                <Brain className="h-8 w-8 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                    Навыков оценено
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center gap-3 md:gap-4">
+            <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
+                Навыков оценено
               </p>
-              <h3 className="text-2xl font-bold tracking-tight mt-1">
-                    {assessmentResults.skill_results.length}
+              <h3 className="text-xl md:text-2xl font-bold tracking-tight mt-1">
+                {assessmentResults.skill_results.length}
               </h3>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                    Вопросов пройдено
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center gap-3 md:gap-4">
+            <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
+                Вопросов пройдено
               </p>
-              <h3 className="text-2xl font-bold tracking-tight mt-1">
-                    {assessmentResults.skill_results.length * 2}
+              <h3 className="text-xl md:text-2xl font-bold tracking-tight mt-1">
+                {assessmentResults.skill_results.length * 2}
               </h3>
             </div>
           </div>
@@ -276,40 +277,40 @@ export default function StudentDashboard() {
 
           {/* Ваши навыки */}
         <Card>
-          <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Ваши навыки</CardTitle>
-            <p className="text-sm text-muted-foreground">
-                Результаты тестирования по каждому навыку
+          <CardHeader className="space-y-1 p-4 md:p-6">
+            <CardTitle className="text-xl md:text-2xl">Ваши навыки</CardTitle>
+            <p className="text-xs md:text-sm text-muted-foreground">
+              Результаты тестирования по каждому навыку
             </p>
           </CardHeader>
-          <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {assessmentResults.skill_results.map((skill) => (
-                <div
-                    key={skill.skill_id}
-                    className="p-4 border rounded-lg space-y-3"
-                >
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-semibold">{skill.skill_name}</h4>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getLevelBadge(skill.level)}`}>
-                        {getSkillLevelRussian(skill.level)}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Ваш результат</span>
-                        <span className="font-medium">{skill.score}%</span>
-                  </div>
-                      <Progress value={skill.score} className="h-2" />
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                      {skill.recommendations}
-                  </p>
+          <CardContent className="p-4 md:p-6 pt-0">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {assessmentResults.skill_results.map((skill) => (
+              <div
+                key={skill.skill_id}
+                className="p-4 border rounded-lg space-y-3"
+              >
+                <div className="flex justify-between items-start gap-2">
+                  <h4 className="font-semibold text-sm md:text-base line-clamp-2">{skill.skill_name}</h4>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getLevelBadge(skill.level)}`}>
+                    {getSkillLevelRussian(skill.level)}
+                  </span>
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Ваш результат</span>
+                    <span className="font-medium">{skill.score}%</span>
+                  </div>
+                  <Progress value={skill.score} className="h-2" />
+                </div>
+
+                <p className="text-xs md:text-sm text-muted-foreground line-clamp-3">
+                  {skill.recommendations}
+                </p>
+              </div>
+            ))}
+          </div>
           </CardContent>
         </Card>
         </>
@@ -317,72 +318,75 @@ export default function StudentDashboard() {
 
       {/* Действия */}
       <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Следующие шаги</CardTitle>
-          <p className="text-sm text-muted-foreground">
+        <CardHeader className="space-y-1 p-4 md:p-6">
+          <CardTitle className="text-xl md:text-2xl">Следующие шаги</CardTitle>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Что вы можете сделать для развития навыков
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+        <CardContent className="p-4 md:p-6 pt-0">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="p-4 border rounded-lg text-center space-y-3 flex flex-col">
-              <Brain className="h-8 w-8 text-primary mx-auto" />
-              <h4 className="font-semibold">Пройти тест заново</h4>
-              <p className="text-sm text-muted-foreground flex-grow">
+              <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary mx-auto" />
+              <h4 className="font-semibold text-sm md:text-base">Пройти тест заново</h4>
+              <p className="text-xs md:text-sm text-muted-foreground flex-grow">
                 Проверьте свой прогресс через некоторое время
               </p>
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/skills-assessment')}
                 className="w-full mt-auto"
+                size="sm"
               >
                 Пройти заново
               </Button>
             </div>
 
             <div className="p-4 border rounded-lg text-center space-y-3 flex flex-col">
-              <Target className="h-8 w-8 text-primary mx-auto" />
-              <h4 className="font-semibold">Курсы развития</h4>
-              <p className="text-sm text-muted-foreground flex-grow">
+              <Target className="h-6 w-6 md:h-8 md:w-8 text-primary mx-auto" />
+              <h4 className="font-semibold text-sm md:text-base">Курсы развития</h4>
+              <p className="text-xs md:text-sm text-muted-foreground flex-grow">
                 Найдите курсы для улучшения навыков
               </p>
               <Button 
                 variant="outline" 
                 className="w-full mt-auto"
-                onClick={() => navigate('/courses')}
+                onClick={() => navigate('/learning')}
+                size="sm"
               >
                 Изучить курсы
               </Button>
-                  </div>
+            </div>
 
-            <div className="p-4 border rounded-lg text-center space-y-3 flex flex-col">
-              <Award className="h-8 w-8 text-primary mx-auto" />
-              <h4 className="font-semibold">Практические задания</h4>
-              <p className="text-sm text-muted-foreground flex-grow">
+            <div className="p-4 border rounded-lg text-center space-y-3 flex flex-col sm:col-span-2 lg:col-span-1">
+              <Award className="h-6 w-6 md:h-8 md:w-8 text-primary mx-auto" />
+              <h4 className="font-semibold text-sm md:text-base">Практические задания</h4>
+              <p className="text-xs md:text-sm text-muted-foreground flex-grow">
                 Применяйте навыки на практике
               </p>
               <Button 
                 variant="outline" 
                 className="w-full mt-auto"
-                onClick={() => navigate('/practice')}
+                onClick={() => navigate('/daily-tasks')}
+                size="sm"
               >
                 Начать практику
               </Button>
-              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Если тест не пройден */}
       {!isLoadingAssessment && !assessmentStatus?.has_completed_assessment && !assessmentStatus?.needs_assessment && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Начните с тестирования навыков</h3>
-            <p className="text-muted-foreground mb-6">
+        <Card className="text-center py-8 md:py-12">
+          <CardContent className="p-4 md:p-6">
+            <Brain className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg md:text-xl font-semibold mb-2">Начните с тестирования навыков</h3>
+            <p className="text-muted-foreground mb-6 text-sm md:text-base max-w-md mx-auto">
               Пройдите тест, чтобы узнать свой уровень гибких навыков и получить персональные рекомендации
             </p>
-            <Button onClick={() => navigate('/skills-assessment')}>
+            <Button onClick={() => navigate('/skills-assessment')} size="sm" className="w-full sm:w-auto">
               Пройти тест
             </Button>
           </CardContent>
@@ -391,10 +395,10 @@ export default function StudentDashboard() {
 
       {/* Загрузка */}
       {(isLoadingAssessment || isLoadingResults) && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Загружаем ваши результаты...</p>
+        <Card className="text-center py-8 md:py-12">
+          <CardContent className="p-4 md:p-6">
+            <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sm md:text-base">Загружаем ваши результаты...</p>
           </CardContent>
         </Card>
       )}

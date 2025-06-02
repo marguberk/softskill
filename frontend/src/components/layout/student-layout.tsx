@@ -48,6 +48,19 @@ export function StudentLayout({ children }: StudentLayoutProps) {
     }
   }, [isMobileMenuOpen])
 
+  // Блокируем скролл при открытом мобильном меню
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
+
   const navigation = [
     {
       name: "Дашборд",
@@ -78,12 +91,13 @@ export function StudentLayout({ children }: StudentLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Мобильная кнопка меню */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      {/* Мобильная верхняя панель */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b z-50 flex items-center justify-between px-4">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="h-10 w-10"
         >
           {isMobileMenuOpen ? (
             <X className="h-6 w-6" />
@@ -91,57 +105,73 @@ export function StudentLayout({ children }: StudentLayoutProps) {
             <Menu className="h-6 w-6" />
           )}
         </Button>
+        
+        <h1 className="text-lg font-semibold truncate">Soft Skill</h1>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => clearAuth()}
+          className="h-10 w-10"
+          title="Выйти"
+        >
+          <LogOut className="h-5 w-5" />
+        </Button>
       </div>
 
       {/* Боковая панель */}
       <div
         id="sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-72 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-40 w-72 transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Сайдбар */}
-        <div className="flex flex-1 flex-col h-full bg-card border-r">
-          {/* Логотип */}
-          <div className="flex h-16 items-center px-4">
+        <div className="flex flex-1 flex-col h-full bg-card border-r shadow-xl lg:shadow-none">
+          {/* Логотип - скрыт на мобильных, показан на десктопе */}
+          <div className="hidden lg:flex h-16 items-center px-4">
             <h1 className="text-2xl font-bold">Soft Skill</h1>
           </div>
 
+          {/* Отступ для мобильной верхней панели */}
+          <div className="h-16 lg:hidden"></div>
+
           {/* Навигация */}
-          <nav className="flex-1 space-y-1 px-2 mt-5">
+          <nav className="flex-1 space-y-1 px-4 py-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href
               return (
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                    "flex items-center gap-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
                     isActive
-                      ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                      ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <item.icon className="h-5 w-5" />
-                  {item.name}
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">{item.name}</span>
                 </Link>
               )
             })}
           </nav>
 
-          {/* Профиль пользователя */}
-          <div className="mt-auto p-4 border-t">
+          {/* Профиль пользователя - только для десктопа */}
+          <div className="hidden lg:block mt-auto p-4 border-t">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div>
-                  <p className="text-sm font-medium">{user?.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <div className="flex items-center min-w-0">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{user?.full_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
               <button
                 onClick={() => clearAuth()}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground ml-2 flex-shrink-0"
                 title="Выйти"
               >
                 <LogOut className="h-5 w-5" />
@@ -154,17 +184,18 @@ export function StudentLayout({ children }: StudentLayoutProps) {
       {/* Затемнение фона при открытом мобильном меню */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Основной контент */}
       <div className="lg:pl-72">
-        <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+        {/* Отступ для мобильной верхней панели */}
+        <div className="h-16 lg:hidden"></div>
+        
+        <main className="py-6 px-4 sm:px-6 lg:px-8 lg:py-10">
+          {children}
         </main>
       </div>
     </div>

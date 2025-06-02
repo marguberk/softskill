@@ -309,39 +309,48 @@ export default function CoursePage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Навигация */}
       <div className="flex items-center gap-3">
         <Button variant="outline" size="sm" onClick={() => navigate('/learning')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Назад к курсам
+          <span className="hidden sm:inline">Назад к курсам</span>
+          <span className="sm:hidden">Назад</span>
         </Button>
       </div>
 
       {/* Заголовок курса */}
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-2 mb-4">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight break-words">
+              {course.title}
+            </h1>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+              {course.description}
+            </p>
           </div>
-          <p className="text-muted-foreground mb-4">{course.description}</p>
         </div>
-        <Button size="lg" className="min-w-[200px]" onClick={() => {
-          if (isAllLessonsCompleted()) {
-            handleGetCertificate()
-          } else if (lessonsData && lessonsData.lessons.length > 0) {
-            navigate(`/courses/${courseId}/lessons/${lessonsData.lessons[0].lesson_id}`)
-          }
-        }}>
+        <Button 
+          size="lg" 
+          className="w-full lg:w-auto lg:min-w-[200px]" 
+          onClick={() => {
+            if (isAllLessonsCompleted()) {
+              handleGetCertificate()
+            } else if (lessonsData && lessonsData.lessons.length > 0) {
+              navigate(`/courses/${courseId}/lessons/${lessonsData.lessons[0].lesson_id}`)
+            }
+          }}
+        >
           {isAllLessonsCompleted() ? (
             <>
-              <Award className="h-5 w-5 mr-2" />
-              Получить сертификат
+              <Award className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+              <span className="truncate">Получить сертификат</span>
             </>
           ) : (
             <>
-              <PlayCircle className="h-5 w-5 mr-2" />
-              Начать изучение
+              <PlayCircle className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+              <span className="truncate">Начать изучение</span>
             </>
           )}
         </Button>
@@ -350,7 +359,7 @@ export default function CoursePage() {
       {/* Прогресс курса */}
       {lessonsData && (
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">
                 {isAllLessonsCompleted() ? 'Курс завершен!' : 'Прогресс курса'}
@@ -379,39 +388,39 @@ export default function CoursePage() {
       )}
 
       {/* Информация о курсе */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
-          <CardContent className="flex items-center gap-4 py-4">
-            <Clock className="h-6 w-6 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="flex items-center gap-3 md:gap-4 py-4 px-4 md:px-6">
+            <Clock className="h-5 w-5 md:h-6 md:w-6 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Длительность
               </p>
-              <p className="text-xl font-bold">{course.duration_hours} часов</p>
+              <p className="text-lg md:text-xl font-bold truncate">{course.duration_hours} часов</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="flex items-center gap-4 py-4">
-            <Award className="h-6 w-6 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="flex items-center gap-3 md:gap-4 py-4 px-4 md:px-6">
+            <Award className="h-5 w-5 md:h-6 md:w-6 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Категория
               </p>
-              <p className="text-lg font-bold">{SKILLS_MAP[course.skill_type as keyof typeof SKILLS_MAP] || course.skill_type}</p>
+              <p className="text-sm md:text-lg font-bold truncate">{SKILLS_MAP[course.skill_type as keyof typeof SKILLS_MAP] || course.skill_type}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="flex items-center gap-4 py-4">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
+        <Card className="sm:col-span-2 lg:col-span-1">
+          <CardContent className="flex items-center gap-3 md:gap-4 py-4 px-4 md:px-6">
+            <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Уроков
               </p>
-              <p className="text-lg font-bold">{lessonsData?.total_lessons || 0}</p>
+              <p className="text-lg md:text-xl font-bold">{lessonsData?.total_lessons || 0}</p>
             </div>
           </CardContent>
         </Card>
@@ -419,19 +428,19 @@ export default function CoursePage() {
 
       {/* Содержание курса */}
       <Card>
-        <CardHeader>
-          <CardTitle>Содержание курса</CardTitle>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">Содержание курса</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6 pt-0">
           {lessonsData && lessonsData.lessons.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {lessonsData.lessons.map((lesson, index) => (
                 <Card key={lesson.lesson_id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm ${
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm flex-shrink-0 ${
                             isLessonCompleted(lesson.lesson_id) 
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-primary/10 text-primary'
@@ -442,53 +451,61 @@ export default function CoursePage() {
                               index + 1
                             )}
                           </div>
-                          {getContentTypeIcon(lesson.material.content_type)}
-                          <h3 className="font-semibold text-lg">{lesson.material.title}</h3>
-                          {lesson.material.content_type.toLowerCase() === 'video' && (
-                            <Badge variant="outline" className="text-xs">
-                              <Video className="h-3 w-3 mr-1" />
-                              Видео
-                            </Badge>
-                          )}
-                          {isLessonCompleted(lesson.lesson_id) && (
-                            <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100 text-xs">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Пройдено
-                            </Badge>
-                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              {getContentTypeIcon(lesson.material.content_type)}
+                              <h3 className="font-semibold text-base md:text-lg leading-tight break-words">
+                                {lesson.material.title}
+                              </h3>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {lesson.material.content_type.toLowerCase() === 'video' && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Video className="h-3 w-3 mr-1" />
+                                  Видео
+                                </Badge>
+                              )}
+                              {isLessonCompleted(lesson.lesson_id) && (
+                                <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100 text-xs">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Пройдено
+                                </Badge>
+                              )}
+                              {lesson.is_required && (
+                                <Badge variant="outline" className="text-xs">
+                                  Обязательный
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
                         
-                        <p className="text-muted-foreground mb-3 leading-relaxed">
+                        <p className="text-muted-foreground mb-3 text-sm md:text-base leading-relaxed">
                           {lesson.material.description}
                         </p>
                         
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3">
                           <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
+                            <Clock className="h-3 w-3 md:h-4 md:w-4" />
                             {lesson.material.duration_minutes} мин
                           </div>
                           {lesson.tasks.length > 0 && (
                             <div className="flex items-center gap-1">
-                              <CheckSquare className="h-4 w-4" />
+                              <CheckSquare className="h-3 w-3 md:h-4 md:w-4" />
                               {lesson.tasks.length} заданий
                             </div>
-                          )}
-                          {lesson.is_required && (
-                            <Badge variant="outline" className="text-xs">
-                              Обязательный
-                            </Badge>
                           )}
                         </div>
 
                         {/* Задания урока */}
                         {lesson.tasks.length > 0 && (
-                          <div className="border-t pt-3">
+                          <div className="border-t pt-3 mt-3">
                             <h4 className="text-sm font-medium mb-2">Задания:</h4>
                             <div className="space-y-1">
                               {lesson.tasks.map((task) => (
-                                <div key={task.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <CheckSquare className="h-3 w-3" />
-                                  <span>{task.title}</span>
+                                <div key={task.id} className="flex items-start gap-2 text-xs md:text-sm text-muted-foreground">
+                                  <CheckSquare className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <span className="break-words">{task.title}</span>
                                 </div>
                               ))}
                             </div>
@@ -496,10 +513,16 @@ export default function CoursePage() {
                         )}
                       </div>
                       
-                      <div className="ml-4">
-                        <Button onClick={() => navigate(`/courses/${courseId}/lessons/${lesson.lesson_id}`)}>
+                      <div className="flex-shrink-0 w-full lg:w-auto">
+                        <Button 
+                          onClick={() => navigate(`/courses/${courseId}/lessons/${lesson.lesson_id}`)}
+                          className="w-full lg:w-auto"
+                          size="sm"
+                        >
                           <PlayCircle className="h-4 w-4 mr-2" />
-                          {isLessonCompleted(lesson.lesson_id) ? 'Повторить урок' : 'Начать урок'}
+                          <span className="truncate">
+                            {isLessonCompleted(lesson.lesson_id) ? 'Повторить урок' : 'Начать урок'}
+                          </span>
                         </Button>
                       </div>
                     </div>
@@ -508,10 +531,10 @@ export default function CoursePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Содержание готовится</h3>
-              <p className="text-muted-foreground mb-4">
+            <div className="text-center py-8 md:py-12">
+              <BookOpen className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg md:text-xl font-semibold mb-2">Содержание готовится</h3>
+              <p className="text-muted-foreground mb-4 text-sm md:text-base">
                 Уроки для этого курса скоро будут добавлены
               </p>
             </div>
@@ -520,4 +543,3 @@ export default function CoursePage() {
       </Card>
     </div>
   )
-}
