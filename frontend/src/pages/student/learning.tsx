@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import { Card, CardContent } from "../../components/ui/card"
+import { Link, useNavigate } from "react-router-dom"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Badge } from "../../components/ui/badge"
 import {
@@ -12,8 +13,11 @@ import {
   Play,
   Calendar,
   CheckCircle,
-  Award
+  Award,
+  PlayCircle,
+  Filter
 } from "lucide-react"
+import { userStorage } from "../../utils/userStorage"
 
 // Обновленный интерфейс для курсов
 interface Course {
@@ -63,7 +67,7 @@ export default function LearningPage() {
       if (!response.ok) return false
       
       const lessonsData = await response.json()
-      const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
+      const completedLessons = userStorage.getCompletedLessons()
       
       return lessonsData.lessons.every((lesson: any) => {
         const lessonKey = `${courseId}-${lesson.lesson_id}`
@@ -77,6 +81,9 @@ export default function LearningPage() {
 
   // Загружаем курсы из нового API
   useEffect(() => {
+    // Мигрируем старые данные при первом использовании
+    userStorage.migrateOldData()
+    
     loadCourses()
   }, [])
 
@@ -116,6 +123,19 @@ export default function LearningPage() {
                          course.description.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesSearch
   })
+
+  // Вычисляем прогресс на основе завершенных уроков
+  const calculateProgress = (lessons: any[]) => {
+    if (!lessons || lessons.length === 0) return 0
+    
+    const completedLessons = userStorage.getCompletedLessons()
+    const completedCount = lessons.filter(lesson => {
+      const lessonKey = `${lesson.course_id}-${lesson.id}`
+      return completedLessons[lessonKey]
+    }).length
+    
+    return Math.round((completedCount / lessons.length) * 100)
+  }
 
   // Компонент карточки курса с проверкой завершения
   const CourseCard = ({ course }: { course: Course }) => {

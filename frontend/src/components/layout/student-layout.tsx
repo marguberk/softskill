@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "../ui/button"
+import { userStorage } from "../../utils/userStorage"
 
 interface StudentLayoutProps {
   children: React.ReactNode
@@ -111,7 +112,10 @@ export function StudentLayout({ children }: StudentLayoutProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => clearAuth()}
+          onClick={() => {
+            userStorage.clearUserData()
+            clearAuth()
+          }}
           className="h-10 w-10"
           title="Выйти"
         >
@@ -170,7 +174,10 @@ export function StudentLayout({ children }: StudentLayoutProps) {
                 </div>
               </div>
               <button
-                onClick={() => clearAuth()}
+                onClick={() => {
+                  userStorage.clearUserData()
+                  clearAuth()
+                }}
                 className="text-muted-foreground hover:text-foreground ml-2 flex-shrink-0"
                 title="Выйти"
               >

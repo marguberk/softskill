@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { generateCertificate } from "../../utils/certificateGenerator"
 import { useAuthStore } from "../../stores/auth"
+import { userStorage } from "../../utils/userStorage"
 
 // Интерфейс для курса
 interface Course {
@@ -109,8 +110,11 @@ export default function CoursePage() {
   const [courseProgress, setCourseProgress] = useState(0)
 
   useEffect(() => {
+    // Мигрируем старые данные при первом использовании
+    userStorage.migrateOldData()
+    
     if (courseId) {
-      loadCourseData(parseInt(courseId))
+      loadCourseData(Number(courseId))
     }
   }, [courseId])
 
@@ -124,7 +128,7 @@ export default function CoursePage() {
   const calculateProgress = () => {
     if (!lessonsData || !courseId) return
 
-    const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
+    const completedLessons = userStorage.getCompletedLessons()
     const totalLessons = lessonsData.lessons.length
     let completedCount = 0
 
@@ -140,9 +144,8 @@ export default function CoursePage() {
   }
 
   const isLessonCompleted = (lessonId: number) => {
-    const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
-    const lessonKey = `${courseId}-${lessonId}`
-    return completedLessons[lessonKey] || false
+    const completedLessons = userStorage.getCompletedLessons()
+    return !!completedLessons[`${courseId}-${lessonId}`]
   }
 
   const isAllLessonsCompleted = () => {
@@ -543,3 +546,4 @@ export default function CoursePage() {
       </Card>
     </div>
   )
+}

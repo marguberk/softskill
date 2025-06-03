@@ -19,6 +19,7 @@ import {
   Check
 } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
+import { userStorage } from "../../utils/userStorage"
 
 // Интерфейс для урока
 interface LessonData {
@@ -67,15 +68,18 @@ export default function LessonPage() {
 
   useEffect(() => {
     if (courseId && lessonId) {
+      // Мигрируем старые данные при первом использовании
+      userStorage.migrateOldData()
+      
       loadLesson(Number(courseId), Number(lessonId))
       
       // Проверяем, завершен ли урок
-      const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
+      const completedLessons = userStorage.getCompletedLessons()
       const lessonKey = `${courseId}-${lessonId}`
       setIsLessonCompleted(!!completedLessons[lessonKey])
       
       // Загружаем состояние выполненных заданий
-      const completedTasksXP = JSON.parse(localStorage.getItem('completedTasksXP') || '{}')
+      const completedTasksXP = userStorage.getCompletedTasksXP()
       const completedTasksForThisLesson = new Set<number>()
       
       // Находим все задания этого урока, которые уже выполнены
@@ -130,7 +134,7 @@ export default function LessonPage() {
   const handleTaskComplete = async (taskId: number) => {
     try {
       // Проверяем, не получали ли уже XP за это задание
-      const completedTasksXP = JSON.parse(localStorage.getItem('completedTasksXP') || '{}')
+      const completedTasksXP = userStorage.getCompletedTasksXP()
       const taskKey = `${courseId}-${lessonId}-${taskId}`
       
       if (completedTasksXP[taskKey]) {
@@ -154,7 +158,7 @@ export default function LessonPage() {
           
           // Сохраняем, что за это задание уже получен XP
           completedTasksXP[taskKey] = true
-          localStorage.setItem('completedTasksXP', JSON.stringify(completedTasksXP))
+          userStorage.setCompletedTasksXP(completedTasksXP)
           
           // Показываем уведомление о получении XP
           if (result.xp_gained > 0) {
@@ -184,11 +188,11 @@ export default function LessonPage() {
       }
     }
 
-    // Сохраняем завершение урока в localStorage
-    const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '{}')
+    // Сохраняем завершение урока
+    const completedLessons = userStorage.getCompletedLessons()
     const lessonKey = `${courseId}-${lessonId}`
     completedLessons[lessonKey] = true
-    localStorage.setItem('completedLessons', JSON.stringify(completedLessons))
+    userStorage.setCompletedLessons(completedLessons)
     
     setIsLessonCompleted(true)
 

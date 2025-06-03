@@ -2,12 +2,16 @@ import { Button } from "../ui/button"
 import { useAuthStore } from "../../stores/auth"
 import { useNavigate } from "react-router-dom"
 import { LogOut, User } from "lucide-react"
+import { userStorage } from "../../utils/userStorage"
 
 export function UserNav() {
   const navigate = useNavigate()
   const { user, clearAuth } = useAuthStore()
 
   const handleLogout = () => {
+    // Очищаем данные пользователя из localStorage
+    userStorage.clearUserData()
+    
     clearAuth()
     navigate('/login')
   }
