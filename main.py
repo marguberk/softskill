@@ -10,6 +10,7 @@ from app.api.v1 import materials
 from app.data.seed_skills import seed_skills_data
 from app.data.seed_tasks import seed_daily_tasks
 from sqlalchemy import inspect
+import uvicorn
 
 # Создаем таблицы только если их нет
 Base.metadata.create_all(bind=engine)
@@ -75,3 +76,6 @@ app.include_router(materials.router, prefix=f"{settings.API_V1_STR}", tags=["mat
 @app.get("/")
 async def root():
     return {"message": "Welcome to Learning Platform API"}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
